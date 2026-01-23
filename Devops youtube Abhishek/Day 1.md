@@ -256,131 +256,112 @@ Most modern organizations adopt **Agile** to apply SDLC phases continuously.
 
 ===============================================
 
-# 📚 DevOps Foundations 🚀  
-## Absolute Prerequisite for Learning DevOps
+# 📚 DevOps Foundations 🚀
 
 ---
 
-## 📌 Brief Overview
-This note covers DevOps fundamentals and is created from the  
-**“Absolute Prerequisite for Learning DevOps”** YouTube video.
-
-It explains:
-- Essential roles in an organization
-- Software Development Life Cycle (SDLC)
-- Scrum framework and sprint execution
-- Jira usage from epics to deployment
-- Responsibilities of a DevOps engineer in infrastructure and automation
+## 📝 Brief Overview
+> This note covers DevOps fundamentals and was created from the Absolute Prerequisite  
+> for Learning DevOps YouTube video. It dives into the essential roles in an organization,  
+> walks through the Software Development Life Cycle, explains Scrum practices, and  
+> demonstrates how Jira is used to manage work from epics to deployment.
 
 ---
 
-## 🔑 Key Points
-- Understand the main roles that collaborate on a DevOps team  
-- Follow SDLC phases from planning to maintenance  
-- Apply Scrum sprint practices and Jira workflows to track progress  
-- Grasp DevOps responsibilities in infrastructure and automation  
+## ⭐ Key Points
+- ✅ Understand the main roles that collaborate on a DevOps team.
+- 🔄 Follow the SDLC phases from planning to maintenance.
+- 🏃 Apply Scrum sprint practices and Jira workflows to track progress.
+- ⚙️ Grasp the responsibilities of a DevOps engineer in infrastructure and automation.
 
 ---
 
 ## 🏢 Roles in an Organization
 
-### Business Analyst (BA)
-**Definition:** Interacts with customers, gathers feedback, and translates it into a Business Requirements Document (BRD).
-
-- Collects customer feedback (e.g., 15-minute grocery delivery request)
-- Prepares BRD for each requirement
-- Acts as the bridge between customers and internal teams
-
----
-
-### Product Manager (PM)
-**Definition:** Sets product vision, prioritizes requirements, and decides roadmap items.
-
-- Receives BRDs from Business Analysts
-- Prioritizes based on market demand, competition, and capacity
-- Communicates priorities to the Product Owner
+### 🧑‍💼 Business Analyst (BA)
+**Definition:** The person who interacts with customers, gathers feedback, and translates  
+it into a Business Requirements Document (BRD).
+- Collects customer feedback (e.g., 15-minute grocery delivery request).
+- Prepares BRD for each requirement.
+- Acts as the bridge between customers and internal teams.
 
 ---
 
-### Product Owner (PO)
-**Definition:** Transforms prioritized requirements into actionable items and maintains the backlog.
-
-- Breaks high-level requirements into epics/features
-- Writes acceptance criteria / definition of done
-- Works with Solution Architects to confirm feasibility
-
----
-
-### Solution / Software Architect
-**Definition:** Designs the technical solution.
-
-- Reviews epics from Product Owner
-- Creates High-Level Design (HLD) and Low-Level Design (LLD)
-- Determines infrastructure, platforms, and technologies
-- Highlights skill gaps or constraints to Product Manager
+### 📊 Product Manager (PM)
+**Definition:** Sets product vision, prioritizes requirements, and decides which items  
+move forward in the roadmap.
+- Receives BRDs from BAs.
+- Prioritizes items based on market, competition, and organizational capacity.
+- Communicates priorities to the Product Owner.
 
 ---
 
-### Development Lead & Developers
-- Receive HLD/LLD and break work into stories
-- Identify infrastructure needs (Kubernetes, Docker, Git)
-- Implement application code
-- Coordinate with DevOps for environment provisioning
+### 🧩 Product Owner (PO)
+**Definition:** Transforms prioritized requirements into actionable items (epics/features)  
+and maintains the product backlog.
+- Breaks high-level requirements into epics (or features).
+- Writes acceptance criteria / definition of done for each epic.
+- Collaborates with Solution Architects to confirm feasibility.
 
 ---
 
-### DevOps Engineer
-**Definition:** Provides infrastructure and automation for development, testing, and deployment.
-
-- Sets up Kubernetes clusters, Dockerfiles, Git repositories
-- Builds CI/CD pipelines
-- Integrates security scans and automated testing
-- Ensures environments are available
-- Improves processes to reduce cycle time
+### 🏗 Solution / Software Architect
+**Definition:** Designs the technical solution, producing High-Level Design (HLD) and  
+Low-Level Design (LLD) documents.
+- Reviews epics from PO.
+- Determines required infrastructure, platforms, and technologies.
+- Flags skill gaps or resource constraints back to the PM.
 
 ---
 
-### QA Engineer
-- Writes manual and automated tests
-- Works with DevOps to integrate tests into CI/CD
-- Validates acceptance criteria
+### 👨‍💻 Development Lead & Developers
+- Receive HLD/LLD and break work into stories.
+- Identify needed infrastructure (e.g., Kubernetes clusters, Docker images, Git repos).
+- Implement code and coordinate with DevOps for environment provisioning.
 
 ---
 
-### Database Administrator (DBA)
-- Provisions and manages databases
-- Collaborates with DevOps on infrastructure as code
+### ⚙️ DevOps Engineer
+**Definition:** Provides the infrastructure and automation required for development,  
+testing, and deployment.
+- Sets up Kubernetes clusters, Dockerfiles, Git repositories, CI/CD pipelines.
+- Integrates security scans and test automation into pipelines.
+- Works with developers to ensure required environments are available.
+- Looks for process improvements to shorten cycle time (e.g., automating manual QA steps).
 
 ---
 
-### Site Reliability Engineer (SRE)
-**Definition:** Ensures reliability and availability of production systems.
-
-- Creates dashboards, metrics, and alerts
-- Monitors production health
-- Notifies stakeholders of incidents
+### 🧪 QA Engineer
+- Writes manual or automated tests.
+- Works with DevOps to embed tests in CI/CD pipelines.
+- Validates that acceptance criteria are met.
 
 ---
 
-### Technical Writer
-**Definition:** Documents features, architecture, and user guides.
+### 🗄 Database Administrator (DBA)
+- Provisions and manages databases required by the solution.
+- May collaborate with DevOps for infrastructure as code.
 
-- Produces internal and external documentation
-- May support multiple scrum teams
+---
+
+### 🚨 Site Reliability Engineer (SRE)
+**Definition:** Ensures reliability and availability of the released product.
+- Creates dashboards, metrics, and alerting.
+- Monitors production health and notifies stakeholders of incidents.
+
+---
+
+### ✍️ Technical Writer
+**Definition:** Documents new features, architecture, and user guides.
+- Produces documentation for internal teams and external users.
+- May serve multiple scrum teams simultaneously.
 
 ---
 
 ## 📈 Software Development Life Cycle (SDLC) Phases
 
-### Requirement Flow Overview
-1. Customer → Business Analyst – feedback captured
-
----
-
-### SDLC Phases Table
-
 | Phase | Primary Activities | Key Participants |
-|-----|-------------------|-----------------|
+|------|------------------|----------------|
 | Planning | Gather requirements (BRD) | Business Analyst, PM |
 | Analysis | Evaluate feasibility, prioritize | PM, PO |
 | Design | Create HLD & LLD | Solution Architect |
@@ -391,141 +372,60 @@ It explains:
 
 ---
 
-## 🔄 Requirement Flow
-1. Customer → Business Analyst  
-2. BA → Product Manager  
-3. PM → Product Owner  
-4. PO → Solution Architect  
-5. Solution Architect → Development Lead  
-6. Development Team → DevOps Engineer  
-7. DevOps → Build infrastructure, CI/CD, automation  
-8. QA & SRE → Test, monitor, and maintain  
+## 🔄 Requirement Flow Overview
+1. Customer → Business Analyst – feedback captured.
+2. BA → Product Manager – BRD handed over.
+3. PM → Product Owner – prioritized items.
+4. PO → Solution Architect – epics broken into actionable items, designs produced.
+5. Solution Architect → Development Lead – HLD/LLD delivered.
+6. Development Team – identifies infrastructure needs → DevOps Engineer.
+7. DevOps – builds environments, CI/CD pipelines, automates testing.
+8. QA & SRE – test, monitor, and maintain the product.
 
-All roles collaborate within a Scrum team.
+> All parties collaborate within a scrum team to deliver the feature.
 
 ---
 
 ## 🏃 Scrum Framework & Sprint
-
-### Scrum Team
-- Developers
-- DevOps
-- QA
-- DBA
-- (Optional) Technical Writer
-
-### Sprint
-- Fixed iteration: **2–3 weeks**
-- Goal: Complete a set of stories
+- **Scrum Team composition:** Developers, DevOps, QA, DBA, (optional) Technical Writer.
+- **Sprint:** Fixed-length iteration (2–3 weeks) where a set of stories is completed.
 
 ### Sprint Activities
-1. Sprint Planning
-2. Daily Stand-up
-3. Sprint Review
-4. Sprint Retrospective
+1. Sprint Planning – select stories from the backlog.
+2. Daily Stand-up – quick status updates.
+3. Sprint Review – demonstrate completed work.
+4. Sprint Retrospective – discuss improvements for the next sprint.
 
-Progress tracked in Jira:
-**To-Do → In Progress → Review → Done**
+Progress tracked via Jira boards  
+🟦 To-Do → 🟨 In Progress → 🟪 Review → 🟩 Done
 
 ---
 
 ## 📋 Jira Project Management Tool
 
-### Account & Organization Setup
-- Sign up on Atlassian
-- Create an organization (e.g., AmazonDemoVala)
+### Creating an Account & Organization
+- Sign up on Atlassian using a Google account.
+- Choose a work email (can be personal for learning).
+- Create an organization (e.g., AmazonDemoVala).
 
-### Project Setup
-- Create a project (e.g., AmazonFresh)
-- Jira auto-creates a board
-
----
-
-### Managing Work Items
-
-| Item Type | Owner | Purpose |
-|---------|------|--------|
-| Epic | Product Owner | High-level feature (e.g., 15-minute delivery) |
-| Story | Developer | Small, implementable work |
-| Task/Sub-task | DevOps, QA, DBA, Writer | Specific technical work |
-
-- Acceptance criteria defined in epics
-- Managers view progress via boards and reports
-- Blockers are visible for escalation
-
----
-
-## 🗓️ Sprint Planning & Execution
-
-### Sprint Planning
-- Time-boxed meeting (every 2–3 weeks)
-- Team reviews backlog and commits to sprint work
-
-### Backlog Review
-1. Open Jira board
-2. Review epics from Product Owner
-3. Discuss with Dev, DevOps, QA
-
-### Story Breakdown
-- Epics are decomposed into stories
-- Example: “Identify framework for mobile advanced UI”
-
-### Assignment & Commitment
-- Stories assigned to owners
-- Definition of Done agreed by team
-
----
-
-## 📚 Story Creation & Assignment
-
-**Story:** A granular work item completed within one sprint.
-
-### Typical Flow
-1. Developer creates a story under an epic
-2. Cross-functional needs are identified
-3. New stories created and assigned
-
-### Example Table
-
-| Parent Epic | New Story | Owner | Reason |
-|------------|----------|------|-------|
-| 15-minute delivery | Identify UI framework | Developer | Define UI stack |
-| 15-minute delivery | Create Kubernetes cluster (Terraform) | DevOps | Runtime environment |
-| 15-minute delivery | Provision AWS RDS | DevOps | Backend datastore |
-
-**Bandwidth Rule**
-- If DevOps has capacity → story picked immediately
-- Otherwise → remains in backlog
-
----
-
-## 🔄 Backlog Refinement & Management
-
-Backlog refinement is continuous:
-1. Add new stories
-2. Prioritize based on impact
-3. Assign based on bandwidth
-4. Carry over if capacity is unavailable
-
-Ensures DevOps receives infrastructure tasks aligned with development needs.
+### Setting Up a Project
+- Within the organization, create a project (e.g., AmazonFresh).
+- Jira automatically provisions a board for the project.
 
 ---
 
 ## 📊 Jira Workflow for DevOps Engineers
+- Open the specific story in Jira.
+- Add daily comments describing work completed.
+- Update status (To-Do → In Progress → Review → Done).
 
-### Typical DevOps Task Flow
-1. Open Jira story
-2. Add daily comments (progress updates)
-3. Update status: To-Do → In Progress → Review → Done
-
-### Visibility
-- Real-time updates visible to all stakeholders
-- Enables transparency and quick escalation
+> All team members and stakeholders can see real-time updates, facilitating transparency and quick issue escalation.
 
 ---
 
 ## 📘 Learning Resources
-- Atlassian: **“Learn Jira in 5 minutes”** tutorial
+- Atlassian’s **“Learn Jira in 5 minutes”** tutorial (available on the Atlassian website).
+
 
 ===============================================================
 
