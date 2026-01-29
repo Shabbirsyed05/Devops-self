@@ -970,7 +970,7 @@ Step 2: Update System & Install Git
 yum update -y
 yum install git -y
 ```
-====
+---
 
 Step 3: Clone Website Code
 ```bash
@@ -984,7 +984,7 @@ Step 4: Install Apache Web Server (HTTPD)
 ```bash
 yum install httpd -y
 ```
-
+---
 Step 5: Move Website Files
 
 Apache serves content from:
@@ -995,10 +995,9 @@ Apache serves content from:
 Copy files:
 ```bash
 cp -r <cloned_folder>/* /var/www/html/
-
 ```
 Recursively copies website files to Apache root
-
+---
 Step 6: Start Web Server
 ```bash
 systemctl start httpd
