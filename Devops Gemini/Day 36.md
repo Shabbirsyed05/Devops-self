@@ -845,5 +845,189 @@ This allows Prometheus to monitor **custom Python/Java applications** alongside 
 
 ======================================================================
 
+# 🌐 Day-43 | AWS LIVE PROJECT | Deploy App Using HTTPD
+
+---
+
+Based on the transcript for **"Day-43 | AWS LIVE PROJECT | DEPLOY APP USING HTTPD,"** this is a summary of the practical session featuring guest speaker **Varun Bansal**.
+
+This session acts as a **capstone project**, combining **Git (local source control)** with **AWS (cloud infrastructure)** to host a **live website accessible to the public**.
+
+---
+
+## 1️⃣ The Goal
+
+The objective is to take a **static website (HTML/CSS)** from a local computer and deploy it onto an **AWS EC2 instance**, making it accessible to anyone on the internet using a **Public IP address**.
+
+---
+
+## 2️⃣ Phase 1: Source Code Management (Git & GitHub)
+
+Before touching AWS, the code must be moved to a **central repository**.
+
+---
+
+### 🔹 The Setup
+- Local folder contains:
+  - `index.html`
+  - Asset folders (CSS, images, etc.)
+
+---
+
+### 🔹 The Process
+- Initialize a Git repository
+- Commit the website files
+- Push the code to a new GitHub repository named **"AWS demo"**
+
+---
+
+### 🔹 Why GitHub?
+In a cloud environment:
+- You **cannot drag and drop files** from your laptop
+- Servers **pull code from repositories**
+- GitHub acts as the source of truth
+
+---
+
+## 3️⃣ Phase 2: Launching the Server (AWS EC2)
+
+The session walks through provisioning a **virtual server on AWS**.
+
+---
+
+### 🖥️ Instance Configuration
+
+- **OS Selection:** Red Hat Linux (Free Tier eligible)
+- **Instance Type:** `t2.micro`
+  - 1 vCPU
+  - 1 GB RAM
+  - Free Tier eligible
+
+---
+
+### 🔐 Key Pair (Security)
+
+- AWS does not use passwords
+- Uses a **Key Pair (.pem file)** for authentication
+
+Steps:
+- Create a key named `demo-website`
+- Download the `.pem` file
+
+📌 This key acts as the **door key** to your EC2 server
+
+---
+
+### 🌐 Network Settings (Critical)
+
+#### Auto-assign Public IP
+- **Must be enabled**
+- Without it, the server is not reachable from the internet
+
+#### Security Group (Firewall Rules)
+Allow:
+- **SSH (Port 22):** For admin login
+- **HTTP (Port 80):** For public website access
+
+⚠ If Port 80 is not allowed, the website will not load
+
+---
+
+## 4️⃣ Phase 3: Connecting to the Server
+
+Once the instance is running, connection is done via terminal.
+
+---
+
+### 🔒 Fix Key Permissions
+
+```bash
+chmod 400 key.pem
+```
+
+Makes the key private
+
+AWS rejects keys with open permissions
+
+🔑 SSH Command
+```bash
+ssh -i key.pem ec2-user@<Public_IP>
+```
+
+Logs the user into the remote Linux server
+
+5️⃣ Phase 4: Configuration & Deployment
+
+Now inside the EC2 instance, the environment is prepared.
+
+Step 1: Switch to Root User
+```bash
+sudo su -
+```
+====
+Step 2: Update System & Install Git
+```bash
+yum update -y
+yum install git -y
+```
+====
+
+Step 3: Clone Website Code
+```bash
+git clone <repo_url>
+
+```
+Pulls the website files from GitHub to EC2
+
+====
+Step 4: Install Apache Web Server (HTTPD)
+```bash
+yum install httpd -y
+```
+
+Step 5: Move Website Files
+
+Apache serves content from:
+```bash
+/var/www/html
+
+```
+Copy files:
+```bash
+cp -r <cloned_folder>/* /var/www/html/
+
+```
+Recursively copies website files to Apache root
+
+Step 6: Start Web Server
+```bash
+systemctl start httpd
+```
+Starts the Apache service
+
+6️⃣ Phase 5: Verification & Troubleshooting
+✅ Verification
+
+Copy the EC2 Public IP
+
+Paste it into a browser
+
+❌ Common Issue: HTTPS Error
+
+Browsers default to https://
+
+SSL is not configured
+
+✔ Fix:
+```bash
+http://<Public_IP>
+```
+
+Result
+
+Website loads successfully
+
+Public users can access the live site using the EC2 Public IP
+
 
 
