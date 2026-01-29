@@ -1034,7 +1034,12 @@ Result
 Website loads successfully
 
 Public users can access the live site using the EC2 Public IP
+
 ---
+
+============================================================================
+
+
 
 
 
