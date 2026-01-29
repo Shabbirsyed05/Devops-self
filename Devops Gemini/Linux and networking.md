@@ -311,3 +311,359 @@ It usually means:
 
 ```
 
+=============================================================================
+
+# 🟢 Day-3 | User Management | File Management | Vi Editor Shortcuts
+
+## 🎯 Session Overview
+This session moves from **understanding the folder structure (Day 2)** to **actively managing a Linux system** — creating users, securing files, connecting to servers, and editing configuration files.
+
+---
+
+## 🟢 1. User Management (Accountability & Security)
+
+In a real company, **100 developers cannot share the root password**.  
+If someone deletes a critical folder like `/sbin`, you must know **who did it**.  
+This is why **individual user accounts and groups** are mandatory.
+
+---
+
+## 🔵 A. Creating & Deleting Users
+
+### ➕ Create Users
+- `useradd <name>`
+  - **Quick command**
+  - Does **not** create a home directory
+  - Does **not** ask for user details
+  - Best suited for **automation/scripts**
+
+- `adduser <name>`
+  - **Interactive command**
+  - Asks for:
+    - Full name
+    - Password
+  - Automatically creates the **home directory**
+  - Best suited for **human use**
+
+### ➖ Delete Users
+- `userdel <name>`
+  - Deletes the user account
+
+---
+
+## 🔵 B. Managing Passwords
+
+- `passwd <name>`
+  - Sets or changes a user’s password
+
+### 🔐 The Shadow File
+- Passwords are stored in:
+
+/etc/shadow
+
+- Stored in **encrypted (hashed) format**
+
+🟡 **Interview Question:**  
+> Can you decrypt a password from `/etc/shadow`?
+
+🟢 **Answer:**  
+No. It is a **one-way hash**.  
+If a user forgets the password, you **cannot recover it** — you must **reset it**.
+
+---
+
+## 🔵 C. Group Management
+
+When managing permissions for **hundreds of users**, you do not update them one by one — you use **groups**.
+
+- `groupadd <name>`
+- Creates a new group (e.g., `devops`)
+
+- `usermod -aG <group> <user>`
+- Adds a user to a group
+
+- `cat /etc/group`
+- Displays all groups created on the system
+
+---
+
+## 🟢 2. Connecting to Servers (SSH)
+
+In real-world environments, you connect to **remote servers** (AWS EC2, on-prem servers) using **SSH (Secure Shell)**.
+
+- **Command:**
+
+ssh <username>@<ip_address>
+
+
+### 🔧 Troubleshooting
+If the server rejects your password:
+- Password authentication may be disabled
+- Check configuration:
+
+/etc/ssh/sshd_config
+
+- Cloud providers usually set:
+
+PasswordAuthentication no
+
+- They prefer **Key Pairs** instead of passwords
+
+---
+
+## 🟢 3. File Management Commands (CRUD)
+
+Basic **Create, Read, Update, Delete** operations:
+
+| 🔧 Action | 🖥️ Command | 📝 Note |
+|--------|---------|------|
+| Create Folder | `mkdir <name>` | Make directory |
+| Create File | `touch <name>` | Creates empty file |
+| Copy | `cp <source> <dest>` | Duplicate file |
+| Move / Rename | `mv <source> <dest>` | Rename if same folder |
+| Delete File | `rm <name>` | Remove file |
+| Delete Folder | `rm -rf <name>` | ⚠️ Dangerous (force delete) |
+
+---
+
+## 🟢 4. The Vi / Vim Editor
+
+Most Linux servers **do not have a GUI**.  
+You must edit files using **command-line editors** like **Vim**.
+
+---
+
+## 🔵 Vim Modes
+
+### 1️⃣ Normal Mode
+- Default mode
+- Used for **navigation**
+- Cannot type text
+
+### 2️⃣ Insert Mode
+- Press `i`
+- Used to **type text**
+
+### 3️⃣ Command Mode
+- Press `Esc` then `:`
+- Used to **save or quit**
+
+---
+
+## 🔑 Important Vim Shortcuts
+
+- **Save & Quit**
+
+Esc → :wq!
+
+- **Quit Without Saving**
+Esc → :q!
+
+- **Go to Top**
+
+:0
+
+- **Go to Bottom**
+Shift + G
+
+
+---
+
+## 🟢 5. Reading Files & Redirection
+
+### 📖 Reading Files Without Editing
+
+- `cat <file>`
+- Prints entire file
+
+- `head -n 10 <file>`
+- Shows first 10 lines
+
+- `tail -n 10 <file>`
+- Shows last 10 lines (useful for logs)
+
+- `less <file>`
+- Scrollable interactive view
+
+---
+
+## 🔄 Redirection Operators (`>` vs `>>`)
+
+### ❌ Overwrite
+
+echo "hello" > file.txt
+- Deletes old content
+- Writes new content
+
+### ➕ Append
+
+echo "hello" >> file.txt
+
+- Adds content to the end
+- Preserves existing data
+
+---
+
+🟣 **End of Day-3 | User Management | File Management | Vi Editor Shortcuts**
+
+===============================================================================
+
+# 🔐 Day-4 | Linux File Permissions Management
+
+## 🎯 Session Overview
+This session builds directly on **Day 3 (User Management)**.  
+The **core problem** addressed here is **security**: even if you have multiple users, if everyone can delete everyone else's files, the system is useless.  
+👉 You need **File Permissions**.
+
+---
+
+## 🟢 1. The Three Identities (Who?)
+
+Linux divides authorization into **three specific categories** for every file and folder:
+
+1. **User (u)**  
+   👤 The owner. Usually the person who created the file.
+
+2. **Group (g)**  
+   👥 A collection of users (e.g., `"devs"`).  
+   If a file belongs to a group, everyone in that group shares the same access level.
+
+3. **Others (o)**  
+   🌍 Everyone else on the system who is **not** the user and **not** in the group.
+
+---
+
+## 🟢 2. Deciphering Permissions (`ls -ltr`)
+
+When you run `ls -ltr`, you see a string like:
+
+-rwxrw-r--
+
+
+This is **not random**. It is a code composed of **10 characters**.
+
+### 🔎 Breakdown
+
+- **1st Character** → File Type  
+  - `d` = Directory  
+  - `-` = File
+
+- **Next 9 Characters** → Permissions (split into 3 sets)
+
+| Set | Applies To | Meaning |
+|----|-----------|--------|
+| Set 1 | User | Permissions for the Owner |
+| Set 2 | Group | Permissions for the Group |
+| Set 3 | Others | Permissions for Everyone Else |
+
+---
+
+## 🟢 3. The Permissions (What?)
+
+Each set contains a combination of **three letters**:
+
+- **r (Read)** 📖  
+  Capability to view the file contents.
+
+- **w (Write)** ✏️  
+  Capability to modify or delete the file.
+
+- **x (Execute)** ▶️  
+  Capability to run the file (e.g., executing a script).
+
+---
+
+## 🟢 4. Changing Permissions: The `chmod` Command
+
+To change access levels, we use the **`chmod`** command.  
+There are **two ways** to use it:
+
+---
+
+### 🔵 Method A: Symbolic Mode (The Alphabet Way)
+
+You explicitly state **which letter goes to which identity**.
+
+- **Command**
+
+chmod u=rwx,g=rw,o=r filename
+
+
+- **Meaning**
+- User → all access  
+- Group → read/write  
+- Others → read only
+
+---
+
+### 🔵 Method B: Numeric Mode (The Math Way) ⭐ Most Common
+
+Linux assigns a **number** to each permission.
+
+| Permission | Value |
+|-----------|-------|
+| Read (r) | 4 |
+| Write (w) | 2 |
+| Execute (x) | 1 |
+| No Permission | 0 |
+
+#### ➕ How to Calculate
+You **sum up** the numbers for the permissions you want.
+
+- **7 (All)** → Read (4) + Write (2) + Execute (1)
+- **6 (Read/Write)** → Read (4) + Write (2)
+- **4 (Read Only)** → Read (4)
+
+#### 📌 Examples
+
+- `chmod 777 file`  
+🚨 Everyone can do everything (**Insecure**)
+
+- `chmod 700 file`  
+🔒 Only the User has full access; Group and Others have zero access
+
+- `chmod 644 file`  
+👤 User can read/write; everyone else can only read
+
+---
+
+## 🟢 5. Changing Ownership: The `chown` Command
+
+Sometimes you don’t want to change permissions—you want to **transfer ownership**.
+
+- **Command**
+
+chown user:group filename
+
+- **Example**
+
+chown qe:qe test.sh
+
+Transfers the file from `"developer"` to `"qe"`.
+
+- **Note** ⚠️  
+Only the **Root user** can typically execute this command to prevent users from dumping files on others.
+
+---
+
+## 🟢 6. The "Bank vs. Locker" Rule (Crucial Concept)
+
+What if you have permission to read a file, but **not** the folder it sits inside?
+
+### 🏦 The Analogy
+- **Folder** → Bank  
+- **File** → Locker  
+
+Even if you have the **key to the locker**, if you are **banned from entering the bank**, you **cannot reach the locker**.
+
+### 📌 The Rule
+👉 **Directory permissions take precedence**.
+
+If you do not have permission to access a folder (`/tmp`), you **cannot access the file inside** (`/tmp/file`), **regardless of the file’s permissions**.
+
+---
+
+🟣 **End of Day-4 | Linux File Permissions Management**
+
+=================================================================
+
