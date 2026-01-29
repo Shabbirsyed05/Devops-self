@@ -956,6 +956,8 @@ ssh -i key.pem ec2-user@<Public_IP>
 
 Logs the user into the remote Linux server
 
+---
+
 5️⃣ Phase 4: Configuration & Deployment
 
 Now inside the EC2 instance, the environment is prepared.
@@ -997,6 +999,7 @@ Copy files:
 cp -r <cloned_folder>/* /var/www/html/
 ```
 Recursively copies website files to Apache root
+
 ---
 Step 6: Start Web Server
 ```bash
@@ -1012,12 +1015,14 @@ Starts the Apache service
 Copy the EC2 Public IP
 
 Paste it into a browser
+
 ---
 ❌ Common Issue: HTTPS Error
 
 Browsers default to https://
 
 SSL is not configured
+
 ---
 ✔ Fix:
 ```bash
