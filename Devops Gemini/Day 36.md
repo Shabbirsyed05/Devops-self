@@ -1004,19 +1004,21 @@ systemctl start httpd
 ```
 Starts the Apache service
 
+---
+
 6️⃣ Phase 5: Verification & Troubleshooting
 ✅ Verification
 
 Copy the EC2 Public IP
 
 Paste it into a browser
-
+---
 ❌ Common Issue: HTTPS Error
 
 Browsers default to https://
 
 SSL is not configured
-
+---
 ✔ Fix:
 ```bash
 http://<Public_IP>
@@ -1027,6 +1029,7 @@ Result
 Website loads successfully
 
 Public users can access the live site using the EC2 Public IP
+---
 
 
 
