@@ -964,7 +964,7 @@ Step 1: Switch to Root User
 ```bash
 sudo su -
 ```
-====
+---
 Step 2: Update System & Install Git
 ```bash
 yum update -y
@@ -979,7 +979,7 @@ git clone <repo_url>
 ```
 Pulls the website files from GitHub to EC2
 
-====
+---
 Step 4: Install Apache Web Server (HTTPD)
 ```bash
 yum install httpd -y
@@ -990,8 +990,8 @@ Step 5: Move Website Files
 Apache serves content from:
 ```bash
 /var/www/html
-
 ```
+
 Copy files:
 ```bash
 cp -r <cloned_folder>/* /var/www/html/
