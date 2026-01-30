@@ -775,7 +775,382 @@ Sometimes a process hangs or consumes **100% CPU**. You need to intervene.
 Services are special processes that run in the **background** and start automatically when the server boots (e.g., Apache or Nginx).
 
 - **Command**
-systemctl status|start|stop <service_name>
 ```bash
 systemctl status|start|stop <service_name>
 ```
+
+---
+
+## 🟢 2. System Monitoring
+
+When a server is slow, you must identify the **bottleneck**  
+👉 CPU vs. RAM vs. Disk
+
+| 🔍 Component | 🧾 Command | 📌 Description |
+|-------------|-----------|----------------|
+| Real-Time | `top` | Shows a live dashboard of processes, sorted by highest resource usage |
+| Visual | `htop` | A more colorful, user-friendly version of `top` |
+| Memory | `free -h` | Shows total vs. used RAM in **Human Readable** format (MB/GB) |
+| CPU Info | `nproc` | Checks how many CPU cores are available |
+| Disk Space | `df -h` | Checks available space on the file system (e.g., `/` is 90% full) |
+| Folder Size | `du -sh` | Checks the size of a specific directory (e.g., `/var/log`) |
+
+🟡 **Note**  
+For enterprise monitoring, the speaker recommends integrating these metrics with **Prometheus and Grafana** for alerting.
+
+---
+
+## 🟢 3. Disk Management (Adding Storage)
+
+If your server runs out of space, you cannot just **"download" more hard drive space**.  
+You must add a **virtual volume (EBS)** and connect it.
+
+### 🧭 4-Step Workflow
+
+#### 🟣 Step 1: Create & Attach
+- Create an **EBS volume** in the AWS console.
+- It must be in the **same Availability Zone** as the EC2 instance.
+- Attach it to the instance.
+
+#### 🟣 Step 2: Verify (`lsblk`)
+```bash
+lsblk
+```
+You will see the new disk (e.g., `xvdf`) attached as **Block Storage**.
+
+#### 🟣 Step 3: Format (`mkfs`)
+Raw block storage cannot be used directly.
+
+```bash
+mkfs -t ext4 /dev/xvdf
+```
+
+You can also use `xfs` instead of `ext4`.
+
+#### 🟣 Step 4: Mount (`mount`)
+Attach the formatted disk to a directory:
+
+```bash
+mount /dev/xvdf /mnt/demo
+```
+
+✅ **Result**  
+Any file saved to `/mnt/demo` is now stored on the **new hard drive**.
+
+---
+
+## 🟢 4. Networking
+
+The speaker notes that **Networking is too complex** to cover in a single summary.
+
+- 📚 **Resource**  
+  A dedicated **"Networking Fundamentals" playlist** covering:
+  - IP Addresses
+  - Subnets
+  - CIDR
+  - OSI Model
+
+- ⚠️ **Advice**  
+  Watch the fundamentals playlist **before attempting Cloud Networking**.
+
+---
+
+🟣 **End of Day-5 | Linux Zero to Hero Series**
+
+===============================================================================================
+
+# 🌐 Networking Concepts are Easy | Networking Explained in a Simple Way
+
+## 🎯 Session Overview
+This session serves as **Part 1 of a networking playlist**, essential for **DevOps Engineers** to understand how traffic flows between devices and servers.
+
+---
+
+## 🟢 1. IP Address (The Unique ID)
+
+- **Definition:**  
+  An **IP Address** is a unique identification number assigned to every device connected to a network.
+
+- **The "Why":**  
+  Without unique IPs, you cannot track specific devices. For example, if a user accesses a malicious website or makes a payment, the network administrator needs the IP to identify exactly which device did it.
+
+### 🔵 The Structure (IPv4)
+
+- It consists of **4 numbers separated by dots** (e.g., `192.168.1.5`).
+- **The Rule:** Each number can only range from **0 to 255**.
+- **The Math:**  
+  Computer logic uses bits. IPv4 is **32 bits total**, divided into **4 bytes (8 bits each)**.  
+  Since `2⁸ = 256`, the maximum value for each slot is **255**.
+
+---
+
+## 🟢 2. Subnetting (Security & Isolation)
+
+- **The Problem:**  
+  If everyone in a company connects to one giant network, a hacker compromising one device could access everything (including sensitive Finance servers).
+
+- **The Solution:**  
+  **Subnetting (Sub-networking)** splits a large network into smaller, isolated logical networks.
+
+- **Example:**  
+  You can create a **Finance Subnet** (Secure) and a **Free Wi-Fi Subnet** (Open).  
+  Even if the Wi-Fi is hacked, the Finance data remains isolated.
+
+### 🔵 Types of Subnets
+
+1. **Private Subnet:** No access to the internet.
+2. **Public Subnet:** Has access to the internet (via an Internet Gateway).
+
+---
+
+## 🟢 3. CIDR (Calculating Network Size)
+
+**CIDR (Classless Inter-Domain Routing)** is the notation used to decide how many IP addresses a specific subnet gets.  
+It usually looks like `/24` or `/16`.
+
+### 🔵 The Calculation Formula
+
+To find the number of available IPs:
+1. Subtract the CIDR value from **32** (total bits).
+2. Calculate **2ⁿ** (where `n = 32 − CIDR`).
+
+### 📊 CIDR Examples
+
+| CIDR Notation | Calculation (32 − CIDR) | Total IP Addresses | Use Case |
+|--------------|-------------------------|-------------------|----------|
+| `/32` | 32−32=0 (2⁰) | 1 IP | A single specific device |
+| `/31` | 32−31=1 (2¹) | 2 IPs | Very small point-to-point link |
+| `/29` | 32−29=3 (2³) | 8 IPs | Small cluster |
+| `/24` | 32−24=8 (2⁸) | 256 IPs | Standard LAN/Home network |
+| `/16` | 32−16=16 (2¹⁶) | 65,536 IPs | Large VPC or Office Network |
+
+### 🟡 Tip
+When creating a **Private Subnet**, standard practice is to use IP ranges starting with:
+- `10.x.x.x`
+- `172.x.x.x`
+- `192.x.x.x`
+
+This avoids conflicts with public websites (like Google’s `8.8.8.8`).
+
+---
+
+## 🟢 4. Ports (Application Identification)
+
+- **Definition:**  
+  While an IP address connects you to the correct **server**, a **Port** connects you to the correct **application** running inside that server.
+
+- **Analogy:**  
+  If the **IP Address** is the **Building Address**, the **Port** is the **Apartment Number**.
+
+### 🔵 Examples
+
+- A web server might run on **Port 80**.
+- A Jenkins server might run on **Port 8080**.
+- A custom app might run on **Port 9191**.
+
+- **Usage:**  
+  To access a specific app, you combine them:  
+
+```bash
+<IP_Address>:<Port>
+```
+Example:
+```bash
+192.168.1.5:9191
+```
+
+---
+
+## 🟢 5. Next Steps
+
+This session focused on:
+- **Layer 3** → IP Addressing
+- **Layer 4** → Ports
+
+📘 The speaker noted that the following topics will be covered in **Part 2**:
+- OSI Model (Layers 1–7)
+- TCP
+- HTTP
+
+---
+
+✅ **End of Networking Concepts – Part 1**
+==========================================================================================
+
+
+
+# 🧠 OSI Model Simplified | Journey of Data Explained
+
+## 🎯 Session Overview
+This session (**Episode 2**) builds on the previous networking session and explains the **“Journey of Data”** — how data travels from your **laptop** to a **server** (like Google).
+
+---
+
+## 🟡 1. Prerequisites: Before the Journey Begins
+
+Before the **OSI Model** even starts, **two critical checks** must succeed.  
+If either fails, **data transmission never starts**.
+
+---
+
+### 🔵 1. DNS Resolution (The Address Lookup)
+
+- When you type `google.com`, your computer needs the **IP address** (e.g., `8.8.8.8`).
+- It first checks the **Local DNS Cache**.
+- If not found, it asks the **ISP’s DNS server**.
+- **Why this matters:**  
+  If the domain doesn’t exist, there’s **no point** in starting a data transfer.
+
+---
+
+### 🔵 2. TCP Handshake (The Greeting)
+
+Before sending data, your laptop checks if the server is ready.
+
+This is called the **3-Way Handshake**:
+
+1. **SYN** → Client says *“Hi”*
+2. **SYN-ACK** → Server says *“Hi, I am ready”*
+3. **ACK** → Client says *“Okay, let’s talk”*
+
+✅ Only after this handshake does actual data transfer begin.
+
+---
+
+## 🟡 2. The OSI Model (7 Layers of Data Transmission)
+
+The **OSI (Open Systems Interconnection) Model** explains how data is transformed as it moves from software to hardware.
+
+---
+
+## 🟢 The “Browser” Layers  
+*(Handled by your Laptop / Application)*
+
+These top **three layers** happen inside your browser or application.
+
+---
+
+### 🟣 Layer 7: Application Layer
+
+- **Action:** Initiates the request type  
+  (HTTP for websites, FTP for file transfer, etc.)
+- **Note:**  
+  This is the layer **you interact with directly**.
+
+---
+
+### 🟣 Layer 6: Presentation Layer
+
+- **Action:** Encryption and formatting.
+- If you use **HTTPS**, data is encrypted here.
+- **Purpose:** Prevents hackers from reading the data.
+
+---
+
+### 🟣 Layer 5: Session Layer
+
+- **Action:** Manages the session.
+- Creates a **Session ID** (stored in cookies/cache).
+- **Result:**  
+  You don’t need to log in again on every refresh  
+  (e.g., Facebook, Banking apps).
+
+---
+
+## 🟢 The “Network” Layers  
+*(Handled by the OS and Hardware)*
+
+Once data leaves the browser, it must be prepared for travel.
+
+---
+
+### 🔵 Layer 4: Transport Layer
+
+- **Action:** Segmentation.
+- Large files (e.g., 10GB) are broken into smaller pieces.
+- **Protocol Decision:**
+  - **TCP** → Reliable
+  - **UDP** → Faster, less reliable
+
+---
+
+### 🔵 Layer 3: Network Layer *(Very Important)*
+
+- **Action:** Routing and path selection.
+- Routers decide the **shortest path**  
+  (Home → ISP → Google).
+- **Data Unit:** PACKETS
+- **Key Information Added:**
+  - Source IP
+  - Destination IP
+
+---
+
+### 🔵 Layer 2: Data Link Layer
+
+- **Action:** Local delivery.
+- Switches handle movement inside a local network.
+- **Data Unit:** FRAMES
+- **Key Information Added:**
+  - MAC Addresses  
+  (so switches know which device to forward data to)
+
+---
+
+### 🔵 Layer 1: Physical Layer
+
+- **Action:** Actual transmission.
+- **Data Unit:** SIGNALS / BITS
+- **Medium:**
+  - Optical fiber
+  - Ethernet cables
+- Data moves as **electrical or light signals**.
+
+---
+
+## 🟡 3. The Reverse Process (Receiving Data)
+
+When data reaches the **Google Server**, everything happens **in reverse order**:
+
+1. Receives **Signals** (Layer 1)
+2. Unpacks **Frames** (Layer 2)
+3. Unpacks **Packets** (Layer 3)
+4. Reassembles **Segments** (Layer 4)
+5. Decrypts and processes the **HTTP request** (Layer 7)
+6. Generates an **HTML response**
+7. Sends the response back down the stack to the client
+
+---
+
+## 🟡 4. OSI Model vs TCP/IP Model
+
+You may also hear about the **TCP/IP Model**.
+
+### 🔵 Key Differences
+
+- TCP/IP combines:
+  - Layer 7 (Application)
+  - Layer 6 (Presentation)
+  - Layer 5 (Session)
+- Into **one single Application Layer**
+
+### 🔵 Why Learn OSI?
+
+- OSI is preferred for **learning and troubleshooting**
+- It breaks down each step clearly
+- Makes debugging network issues much easier
+
+---
+
+✅ **End of OSI Model – Simplified Explanation**
+
+=============================================================================================
+
+
+
+
+
+
+
+
+
