@@ -1084,6 +1084,23 @@ For complex, multi-step tasks (like installing and starting a server), you write
 - **Debugging:**  
   If something fails, add `-v` (verbose) to the command to see exactly what Ansible is doing in the background.
 
+```bash
+---
+- name: Install and start Nginx on Ubuntu
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Ensure Nginx is started and enabled
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+```
 ---
 
 ## 5️⃣ Scaling Up: Ansible Roles
