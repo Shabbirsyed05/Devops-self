@@ -667,3 +667,115 @@ If you do not have permission to access a folder (`/tmp`), you **cannot access t
 
 =================================================================
 
+# ⚙️ Day-5 | Process Management | Monitoring | Networking | Disk Management
+
+## 🎯 Session Overview
+This session acts as the **final chapter of the "Linux Zero to Hero" series**, covering how to manage running applications, monitor system health, and expand storage capabilities.
+
+---
+
+## 🟢 1. Process Management
+
+A **Process** is simply a running instance of a program (e.g., a Python script, a web server, or a shell command).  
+The **Operating System** manages how these processes share the **CPU and Memory**.
+
+---
+
+### 🔵 A. Viewing Processes
+
+- **`ps`**  
+  Lists processes running in the **current shell session**.
+
+- **`ps aux`** ⭐  
+  The **gold standard command**.  
+  Lists all processes from all users and includes **CPU and Memory utilization** columns.
+
+- **`ps -ef`**  
+  Similar to `ps aux`, but it does **not** show memory utilization.  
+  Useful for viewing the **Process ID (PID)** and **Parent Process ID (PPID)**.
+
+---
+
+### 🔵 B. Managing Processes (Kill & Prioritize)
+
+Sometimes a process hangs or consumes **100% CPU**. You need to intervene.
+
+- **`kill <PID>`**  
+  Sends a standard termination signal to stop the process.
+
+- **`kill -9 <PID>`** 🚨  
+  **Force Kill**. Use this if the standard `kill` command fails.
+
+- **`kill -3 <PID>`**  
+  Used primarily for **Java applications** to generate **thread dumps** for debugging without killing the app.
+
+- **`renice -n <value> -p <PID>`**  
+  Changes the **priority** of a process.  
+  - Range: **-20 (Highest Priority)** → **19 (Lowest Priority)**  
+  - 🩺 **Analogy**: The CPU is like a doctor; `renice` tells the doctor which patient (process) is in the ICU and needs immediate attention.
+
+---
+
+### 🔵 C. Services (`systemctl`)
+
+Services are special processes that run in the **background** and start automatically when the server boots (e.g., Apache or Nginx).
+
+- **Command**
+# ⚙️ Day-5 | Process Management | Monitoring | Networking | Disk Management
+
+## 🎯 Session Overview
+This session acts as the **final chapter of the "Linux Zero to Hero" series**, covering how to manage running applications, monitor system health, and expand storage capabilities.
+
+---
+
+## 🟢 1. Process Management
+
+A **Process** is simply a running instance of a program (e.g., a Python script, a web server, or a shell command).  
+The **Operating System** manages how these processes share the **CPU and Memory**.
+
+---
+
+### 🔵 A. Viewing Processes
+
+- **`ps`**  
+  Lists processes running in the **current shell session**.
+
+- **`ps aux`** ⭐  
+  The **gold standard command**.  
+  Lists all processes from all users and includes **CPU and Memory utilization** columns.
+
+- **`ps -ef`**  
+  Similar to `ps aux`, but it does **not** show memory utilization.  
+  Useful for viewing the **Process ID (PID)** and **Parent Process ID (PPID)**.
+
+---
+
+### 🔵 B. Managing Processes (Kill & Prioritize)
+
+Sometimes a process hangs or consumes **100% CPU**. You need to intervene.
+
+- **`kill <PID>`**  
+  Sends a standard termination signal to stop the process.
+
+- **`kill -9 <PID>`** 🚨  
+  **Force Kill**. Use this if the standard `kill` command fails.
+
+- **`kill -3 <PID>`**  
+  Used primarily for **Java applications** to generate **thread dumps** for debugging without killing the app.
+
+- **`renice -n <value> -p <PID>`**  
+  Changes the **priority** of a process.  
+  - Range: **-20 (Highest Priority)** → **19 (Lowest Priority)**  
+  - 🩺 **Analogy**: The CPU is like a doctor; `renice` tells the doctor which patient (process) is in the ICU and needs immediate attention.
+
+---
+
+### 🔵 C. Services (`systemctl`)
+
+Services are special processes that run in the **background** and start automatically when the server boots (e.g., Apache or Nginx).
+
+- **Command**
+systemctl status|start|stop <service_name>
+```bash
+systemctl status|start|stop <service_name>
+```
