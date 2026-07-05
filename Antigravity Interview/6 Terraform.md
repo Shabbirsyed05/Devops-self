@@ -1,6 +1,6 @@
-content = r"""# Terraform Interview Guide
+# Terraform Interview Guide
 
-> **Source:** [iam-veeramalla/devops-cloud-interview-guide](https://github.com/iam-veeramalla/devops-cloud-interview-guide) — `06-terraform/` folder  
+> **Source:** [iam-veeramalla/devops-cloud-interview-guide](https://github.com/iam-veeramalla/devops-cloud-interview-guide) — `06-terraform/` folder
 > **Purpose:** Master Terraform concepts — loops, modules, state, and best practices for interviews
 
 ---
@@ -172,9 +172,9 @@ A **Terraform module** is simply a folder containing `.tf` files. It can be sour
 ```
 modules/
   ec2-instance/
-    main.tf        ← resource definitions
-    variables.tf   ← input variables
-    outputs.tf     ← exported values
+    main.tf        <- resource definitions
+    variables.tf   <- input variables
+    outputs.tf     <- exported values
 ```
 
 **`modules/ec2-instance/variables.tf`**
@@ -263,13 +263,5 @@ module "my_ec2" {
 
 ---
 
-> Star this repo if it helped you prepare for your DevOps interview!  
-> Drop the next topic's raw notes and they'll be formatted and added here.
-"""
-
-out_path = r"c:\Users\sshabbir4\.gemini\antigravity-ide\scratch\devops-interview-prep\terraform\README.md"
-
-with open(out_path, "w", encoding="utf-8") as f:
-    f.write(content)
-
-print(f"Written {len(content)} characters to {out_path}")
+> Star this repo if it helped you prepare for your DevOps interview!
+> Drop the next topic's raw notes and they will be formatted and added here.
