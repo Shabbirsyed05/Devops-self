@@ -1639,4 +1639,997 @@ MTTR = Mean Time To Resolution
 
 ---
 
-*📝 Last Updated: July 2026 | Days 0–7 + DeepSeek & Docker Model Runner Bonus | Interview Prep Summary*
+---
+
+## 📚 Day 8 Deep Dive — In-House AI Documentation Agent (CrewAI + Ollama + RAG)
+
+---
+
+### 1️⃣ The Problem: Why You Can't Use ChatGPT for Internal Docs
+
+| Issue | Detail |
+|-------|--------|
+| **Privacy Risk** | Uploading runbooks, architecture diagrams, or API keys to public LLMs breaches corporate policy |
+| **Data Training Leaks** | Public LLM ToS often allow user prompts to be used in future model training |
+| **Hallucinations** | Generic LLMs don't know your proprietary tools (e.g., internal observability platforms) |
+| **The Solution** | Build a **local RAG agent** — reads your internal PDFs privately, never touches the internet |
+
+> 🧠 **Interview One-Liner:**
+> *"RAG (Retrieval-Augmented Generation) lets an LLM answer questions from your private documents by retrieving relevant chunks before generating a response — keeping all sensitive data on-premises."*
+
+---
+
+### 2️⃣ What Is RAG (Retrieval-Augmented Generation)?
+
+```
+WITHOUT RAG:
+  User Question → LLM answers from training data → May hallucinate
+
+WITH RAG:
+  User Question → Search private docs → Retrieve relevant chunks
+                → Feed chunks to LLM → Accurate, grounded answer
+```
+
+**Used here:** CrewAI's `knowledge` folder ingests your PDF → agent queries it locally via Ollama.
+
+---
+
+### 3️⃣ Step-by-Step Setup
+
+#### Step 1 — Environment Setup
+
+```bash
+# Python 3.10–3.13 required
+python3 -m venv .ai_sandbox
+source .ai_sandbox/bin/activate    # Linux/Mac
+# .ai_sandbox\Scripts\activate     # Windows
+
+pip3 install crewai
+```
+
+#### Step 2 — Clone CrewAI Examples (MetaQuest Template)
+
+```bash
+git clone https://github.com/crewAIInc/crewai-examples.git
+cd crewai-examples/metaquest_knowledge
+
+# Install dependencies
+crewai install
+```
+
+> ⚠️ **Gotcha:** If `crewai install` fails with path errors, open `pyproject.toml` and fix the project name to match your directory (`metaquest_knowledge`).
+
+#### Step 3 — Replace Default Doc with Your Internal File
+
+```bash
+# Remove the default template files
+rm knowledge/*
+
+# Drop in your internal company document
+cp /path/to/your/internal_docs.pdf knowledge/
+# Example: virala_observability_platform_documentation.pdf
+```
+
+#### Step 4 — Configure Agent Persona (`agents.yaml`)
+
+```yaml
+# src/config/agents.yaml
+vala_tool_expert:
+  role: Vala Observability Platform Expert
+  goal: Provide clear, highly accurate engineering responses about the Vala platform ecosystem.
+  backstory: |
+    You are a seasoned operational systems expert specializing in the
+    proprietary Vala architecture. You excel at distilling massive
+    documentation files into concise, actionable insights.
+```
+
+#### Step 5 — Configure Task (`tasks.yaml`)
+
+```yaml
+# src/config/tasks.yaml
+answer_question_task:
+  description: >
+    Analyze the user's inquiry and provide an answer drawn strictly
+    from the local knowledge base. Do not use external training data.
+  expected_output: >
+    A clear summary paragraph with structured bullets addressing
+    the specific system query.
+  agent: vala_tool_expert
+```
+
+#### Step 6 — Force Local Ollama (`.env` file)
+
+```bash
+# Create .env in project root — forces CrewAI to use local Ollama
+# instead of looking for OpenAI keys
+MODEL=ollama/llama3.1
+OPENAI_API_BASE=http://localhost:11434/v1
+OPENAI_API_KEY=na
+```
+
+> 💡 **Why this works:** CrewAI looks for OpenAI by default. Setting `OPENAI_API_BASE` to your local Ollama URL redirects all API calls to your local model — zero internet, zero cost.
+
+#### Step 7 — Run and Test
+
+```bash
+crewai run
+# Agent reads your PDF, answers questions from it locally
+```
+
+---
+
+### 4️⃣ Live Demo Results
+
+| Query | Source Used | Response |
+|-------|------------|---------|
+| `"What is Vala tool?"` | Scanned local PDF | "The Virala Observability Platform is a comprehensive system architecture for deep runtime tracking, unified log visibility, and root-cause analysis metrics." |
+| `"How is Vala vs Prometheus?"` | Scanned local PDF | "Virala replaces basic time-series DB setups with high-performance VictoriaMetrics, offering higher ingestion density." |
+
+> ✅ The agent **skipped public training data** and answered exclusively from the private internal document.
+
+---
+
+### 5️⃣ Day 8 Interview Questions & Answers
+
+<details>
+<summary><strong>Q1: What is RAG and why is it important for enterprise AI?</strong></summary>
+
+RAG (Retrieval-Augmented Generation) is a technique where an LLM answers questions by first **retrieving relevant chunks from your private documents**, then generating a response grounded in that content. This eliminates hallucinations for internal knowledge and keeps sensitive data off public servers.
+
+</details>
+
+<details>
+<summary><strong>Q2: How do you force CrewAI to use a local Ollama model instead of OpenAI?</strong></summary>
+
+Create a `.env` file in the project root with:
+```
+MODEL=ollama/llama3.1
+OPENAI_API_BASE=http://localhost:11434/v1
+OPENAI_API_KEY=na
+```
+This redirects all API calls from OpenAI's servers to your local Ollama instance.
+
+</details>
+
+<details>
+<summary><strong>Q3: Why use the MetaQuest template from CrewAI examples?</strong></summary>
+
+It provides a pre-built scaffold with the `knowledge/` folder structure, configuration files, and RAG pipeline already wired up. Engineers just replace the default PDF with their internal document — saving hours of manual setup.
+
+</details>
+
+<details>
+<summary><strong>Q4: What types of internal documents can you feed to this agent?</strong></summary>
+
+Any unstructured text content: PDFs, Markdown files, Word docs, runbooks, architecture blueprints, onboarding guides, API documentation, incident reports. CrewAI's knowledge system parses and indexes them for local vector search.
+
+</details>
+
+<details>
+<summary><strong>Q5: How can you reduce hallucinations in the RAG agent?</strong></summary>
+
+Add varied example query-answer pairs (training examples) directly into the `crew.py` file's `train` definitions. More contextual examples help the model understand the expected response format and stay grounded in the retrieved document content.
+
+</details>
+
+---
+
+## 🔥 Bonus: Windsurf AI IDE — Multi-Environment Deployment Test
+
+---
+
+### 1️⃣ What Is Windsurf & Cascade?
+
+| Tool | Description |
+|------|------------|
+| **Windsurf** | AI-driven IDE (like Cursor, but with deeper agentic integration) |
+| **Cascade Agent** | Autonomous coding agent inside Windsurf — plans, writes, deploys, debugs end-to-end |
+| **Test Goal** | Generate a Tic-Tac-Toe app from scratch and deploy to 4 different environments |
+
+---
+
+### 2️⃣ The 4-Environment Deployment Challenge
+
+```
+[Natural Language Prompt]
+         |
+         v
+  Cascade Agent generates: HTML + CSS + JavaScript (Tic-Tac-Toe app)
+         |
+    ┌────┴────┬──────────────┬──────────────────┐
+    v         v              v                  v
+  EC2/VM   Docker        Kubernetes         Serverless
+  (Nginx)  (Compose)     (Kind Cluster)   (Lambda + API GW)
+```
+
+---
+
+### 3️⃣ Each Environment — What Cascade Did
+
+#### 🖥️ Environment 1: AWS EC2 + Nginx (Virtual Machine)
+
+```bash
+# Cascade autonomously:
+# 1. Verified AWS CLI available locally
+# 2. Created Security Group (HTTP ingress rules)
+# 3. Wrote user_data.sh startup script:
+apt-get update
+apt-get install -y nginx
+cp -r /app/* /var/www/html/
+systemctl start nginx
+# 4. Launched EC2 instance → outputted public IP → site live in browser
+```
+
+#### 🐳 Environment 2: Docker Compose (4 Containers)
+
+```yaml
+# Cascade wrote docker-compose.yml with:
+services:
+  tictactoe:     # Core game app (Nginx base image)
+  nginx-lb:      # Load balancer front-end
+  redis:         # Data persistence container
+  prometheus:    # Observability tracking
+
+# Then ran: docker compose up
+# Result: App live at localhost:8080
+```
+
+#### ☸️ Environment 3: Kubernetes (Kind Cluster)
+
+```bash
+# Cascade created 4 manifests:
+# - Namespace, ConfigMap, Deployment, Service
+
+# Bug encountered: CrashLoopBackOff (Nginx permission issue)
+kubectl logs <pod-name>   # Cascade read this automatically
+
+# Cascade fixed: Updated security constraints in deployment manifest
+# Cascade adapted: Kind doesn't support LoadBalancer → used port-forward
+kubectl port-forward svc/tictactoe 8081:80
+# Result: App live at localhost:8081
+```
+
+#### ⚡ Environment 4: Serverless (AWS Lambda + API Gateway)
+
+```bash
+# Cascade autonomously:
+# 1. Created IAM execution role
+# 2. Packaged JS assets into ZIP archive
+# 3. Uploaded ZIP to AWS Lambda
+# 4. Provisioned API Gateway as HTTP proxy
+# 5. Tested the exposed API endpoint → confirmed working
+```
+
+---
+
+### 4️⃣ Time Comparison
+
+| Approach | Estimated Time |
+|---------|---------------|
+| Manual research + scripting + debugging | 7–8 hours |
+| Windsurf Cascade Agent | Under 30 minutes |
+| **Time saved** | **~95%** |
+
+---
+
+### 5️⃣ Windsurf/Cascade Interview Questions & Answers
+
+<details>
+<summary><strong>Q1: What is a CrashLoopBackOff in Kubernetes and how did Cascade fix it?</strong></summary>
+
+`CrashLoopBackOff` means a pod keeps crashing and Kubernetes keeps restarting it in a loop. In the demo, it was caused by Nginx root directory permission constraints. Cascade autonomously ran `kubectl logs` to read the error, identified the permission issue, updated the security context in the deployment manifest, and redeployed — without any human help.
+
+</details>
+
+<details>
+<summary><strong>Q2: Why can't a Kind cluster use a LoadBalancer Service type?</strong></summary>
+
+Kind (Kubernetes in Docker) is a local testing tool — it doesn't have a cloud provider load balancer integration. When Cascade detected this limitation, it automatically switched strategy to use `kubectl port-forward` to expose the service locally — demonstrating autonomous error recovery.
+
+</details>
+
+<details>
+<summary><strong>Q3: What does user_data.sh do in an EC2 launch?</strong></summary>
+
+`user_data.sh` is a shell script that AWS runs **once** during EC2 instance initialization. It configures the server before it starts serving traffic — installing packages (like Nginx), copying app files, and starting services. Cascade wrote this automatically as part of the EC2 deployment.
+
+</details>
+
+<details>
+<summary><strong>Q4: What is the role of API Gateway in a serverless architecture?</strong></summary>
+
+AWS Lambda functions can't directly receive HTTP traffic. API Gateway acts as a front-facing HTTP router — it receives client requests, maps them to Lambda function invocations, and returns the responses. Together they form a serverless web server without any EC2 instances.
+
+</details>
+
+---
+
+## 🔥 Bonus: Enterprise AI Documentation Agents with Retool
+
+---
+
+### 1️⃣ The Enterprise Problem
+
+| Issue | Impact |
+|-------|--------|
+| **ChatGPT blocked at corporate network** | Employees can't use public AI for work tasks |
+| **Data training leaks** | Public LLM ToS allows prompt data to train future models |
+| **No proprietary context** | Public models don't know internal tools, runbooks, or system names |
+| **Retool Solution** | Private, secure internal AI agent — no data leaves your org |
+
+---
+
+### 2️⃣ Retool vs. Custom Code Agent (CrewAI/Ollama)
+
+| Feature | CrewAI + Ollama (Code) | Retool (No-Code/Low-Code) |
+|---------|----------------------|---------------------------|
+| **Setup Time** | 30+ minutes, Python knowledge needed | Under 10 minutes, GUI-based |
+| **Target User** | Engineers | Engineers + Non-technical teams |
+| **Model Flexibility** | Any Ollama model | GPT, Claude, Llama, DeepSeek |
+| **Enterprise Auth** | Manual setup | Built-in SSO (Okta, Auth0) + RBAC |
+| **Vector DB** | Custom / local | Retool Vectors (built-in) |
+| **Trigger Types** | CLI / code invocation | Chat box + Email triggers + API hooks |
+| **Best For** | Local proof-of-concepts | Enterprise production deployment |
+
+---
+
+### 3️⃣ Key Retool Features for Enterprise AI
+
+#### 🔷 Model Agnosticism
+```
+Teams can switch backend between:
+  Closed:    OpenAI GPT-4o, Anthropic Claude
+  Open:      Llama, DeepSeek (self-hosted)
+  Reason:    Compliance requirements change — Retool adapts
+```
+
+#### 🔷 Retool Vectors (Private RAG)
+```
+Your PDFs / Markdown / Wikis
+      ↓
+  Retool parses + creates vector embeddings (on-platform)
+      ↓
+  LLM queries vectors → grounded answers from YOUR docs
+      ↓
+  Raw data NEVER sent to public internet
+```
+
+#### 🔷 Advanced Trigger Types
+
+| Trigger | Use Case |
+|---------|---------|
+| **Chat box** | Employees ask questions via internal chat interface |
+| **Email trigger** | CI/CD failure emails the agent → agent scans runbooks → replies with fix |
+| **API hook** | External systems call the agent programmatically |
+
+#### 🔷 Enterprise Governance
+- **SSO:** Okta, Auth0, OneLogin — employees log in with company credentials
+- **RBAC:** Role-Based Access Control — only authorized teams see sensitive docs
+
+---
+
+### 4️⃣ Step-by-Step Retool Agent Setup
+
+```
+Step 1: Log into Retool → Open Agents panel → "Start from scratch"
+         ↓
+Step 2: Name your agent (e.g., documentation_agent_1)
+        Use Configuration Assistant to auto-generate base instructions:
+        "You are a helpful chatbot that returns responses based on local knowledge vectors."
+        Set target model (e.g., GPT-4o mini)
+         ↓
+Step 3: Resources panel → Retool Vectors → Create new container ("demo")
+        Upload internal PDF (e.g., superbility_documentation.pdf)
+        Retool handles parsing + embedding automatically
+         ↓
+Step 4: Back in agent workspace → Add Tool → Select "demo" Retool Vector
+        Convert to retrieve_tool custom function
+        Set document as mandatory source vector
+         ↓
+Step 5: Update agent prompt instructions:
+        "Use 'demo' as the default vector namespace.
+         Prioritize 'superbility_documentation.pdf' for system-level lookups."
+         ↓
+Step 6: Test in chat → Agent retrieves from your doc, not public training data
+```
+
+---
+
+### 5️⃣ Live Demo Results
+
+| Query | Agent Behavior | Response |
+|-------|---------------|---------|
+| `"What is Superbility?"` | Term not in training → triggered `retrieve_tool` → scanned PDF | "Superbility is a unified observability platform for real-time visibility into application performance metrics." |
+| `"Superbility vs Prometheus?"` | Retrieved architecture section from PDF | "Prometheus handles standalone metrics only. Superbility natively coordinates metrics, traces, and logs under one unified UI." |
+
+---
+
+### 6️⃣ Retool Interview Questions & Answers
+
+<details>
+<summary><strong>Q1: What is Retool and why is it used for enterprise AI agents?</strong></summary>
+
+Retool is a low-code platform for building internal tools. For AI agents, it provides private RAG (Retool Vectors), enterprise auth (SSO/RBAC), model flexibility, and multiple trigger types (chat, email, API) — all without writing Python scripts. It enables teams to deploy production-grade internal AI agents in minutes.
+
+</details>
+
+<details>
+<summary><strong>Q2: What are Retool Vectors and how do they work?</strong></summary>
+
+Retool Vectors is Retool's built-in vector embedding service. Upload your internal documents (PDFs, Markdown, Wikis) and Retool automatically parses and embeds them. The LLM then searches these embeddings to retrieve relevant content before generating answers — a private RAG pipeline with no external data exposure.
+
+</details>
+
+<details>
+<summary><strong>Q3: What is the Email Trigger feature in Retool AI agents?</strong></summary>
+
+Email triggers allow the AI agent to be invoked by an incoming email. Example: A failed CI/CD pipeline sends an incident log to a monitored email → the Retool agent parses the email, searches internal runbooks, and automatically replies with a step-by-step remediation plan.
+
+</details>
+
+<details>
+<summary><strong>Q4: What is SSO and RBAC in the context of enterprise AI tools?</strong></summary>
+
+- **SSO (Single Sign-On):** Employees authenticate using their existing company identity provider (Okta, Auth0, OneLogin) — no separate login required
+- **RBAC (Role-Based Access Control):** Different roles (developer, manager, finance) get different access levels to the AI agent's knowledge base — sensitive docs stay protected
+
+</details>
+
+<details>
+<summary><strong>Q5: When would you use Retool vs. CrewAI+Ollama for an AI documentation agent?</strong></summary>
+
+- **CrewAI + Ollama:** Local proof-of-concept, engineer-only tool, maximum data privacy (fully offline), Python team
+- **Retool:** Enterprise deployment, non-technical users, need SSO/RBAC, need email/API triggers, want model flexibility without code changes, production-ready in minutes
+
+</details>
+
+---
+
+## 🚀 Master Quick Revision Cheat Sheet (All Days + Bonus)
+
+```
+TRADITIONAL AI   ->  Predict  ->  AIOps, Auto Scaling
+GENERATIVE AI    ->  Create   ->  Code, Scripts, Manifests
+
+LLM = Neural Network trained on big data -> Answers from memory weights
+
+4 TIERS:
+  Chatbot    = Talk only
+  Assistant  = IDE inline help
+  Agent      = Plan + Execute autonomously
+  Scripting  = Python API + local LLM
+
+PROMPT TYPES:
+  Zero-shot  = No examples given
+  Few-shot   = Give 2-3 examples first (teach org style)
+  Multi-shot = Many examples for complex logic
+  CoT        = "Think step by step"
+
+4-PART PROMPT FRAMEWORK:
+  1. Context     = Define AI persona
+  2. Instruction = Precise directive
+  3. Examples    = Show org coding style
+  4. Output      = Specify exact format
+
+TOKEN COST:
+  Vague   = ~2,500 tokens | Precise = ~150 tokens (94% cheaper)
+
+DEEPSEEK R1:
+  $0.15/1M tokens vs OpenAI $7.50/1M
+  ollama run deepseek-r1:1.5b
+
+LOCAL vs HOSTED LLMs:
+  Local  -> Security + Free  BUT needs GPU
+  Hosted -> Easy + Fast      BUT cost + privacy risk
+
+SHELL SCRIPTING + AI BEST PRACTICES:
+  1. Semantic filenames (aws_vpc_create.sh)
+  2. Top-of-file context comment
+  3. Descriptive variable names (VPC_CIDR_BLOCK)
+  4. Ctrl+I to explain before accepting
+
+AIOPSE vs AI-ASSISTED DEVOPS:
+  AI-Assisted = Generate code (productivity)
+  AIOps       = ML on live infra data (predictive ops)
+
+LOG ANALYSIS:
+  Traditional = static thresholds (reactive, misses WARN anomalies)
+  AIOps       = Isolation Forest (unsupervised ML)
+  contamination=0.1 -> ~10% anomaly expectation
+  level_mapping: INFO=1, WARNING=2, ERROR=3, CRITICAL=4
+
+AI AGENTS (CrewAI):
+  pip install crewai
+  crewai create crew <project>
+  agents.yaml  -> role + goal + backstory
+  tasks.yaml   -> description + expected_output + agent
+  crewai run   -> pipeline executes autonomously
+
+RAG AGENT (Private Docs):
+  Drop PDF into knowledge/ folder
+  .env: MODEL=ollama/llama3.1
+  .env: OPENAI_API_BASE=http://localhost:11434/v1
+  .env: OPENAI_API_KEY=na
+  Agent reads YOUR doc, not public training data
+
+DOCKER MODEL RUNNER:
+  Requires Docker Desktop v4.40+
+  Source: hub.docker.com/u/ai
+  docker model pull/list/run/rm ai/smollm2
+  UI at localhost:8081
+
+WINDSURF/CASCADE AGENT:
+  Deploys to EC2 / Docker / K8s / Lambda autonomously
+  CrashLoopBackOff -> kubectl logs -> auto-fix -> redeploy
+  Kind = no LoadBalancer -> agent auto-switches to port-forward
+  7-8 hour manual work -> under 30 minutes with AI agent
+
+RETOOL ENTERPRISE AGENT:
+  No code needed, GUI-based, under 10 minutes
+  Retool Vectors = private RAG (PDF/MD/Wiki)
+  SSO: Okta, Auth0, OneLogin
+  RBAC: Role-based doc access control
+  Triggers: Chat box | Email | API hook
+  Models: GPT-4o, Claude, Llama, DeepSeek (switchable)
+
+KUBERNETES KEY TERMS:
+  CrashLoopBackOff = Pod crashing repeatedly
+  kubectl logs     = Read pod error output
+  port-forward     = Expose service locally (no cloud LB needed)
+  Kind             = Local K8s cluster (no external LoadBalancer)
+
+SERVERLESS KEY TERMS:
+  Lambda   = Function runs on demand (no server to manage)
+  API GW   = HTTP router that triggers Lambda
+  user_data.sh = EC2 startup bootstrap script (runs once at launch)
+
+MTTR = Mean Time To Resolution
+  AIOps reduces MTTR by predicting, isolating, auto-fixing
+```
+
+---
+
+## 📬 Resources
+
+- 📺 **YouTube Channel:** Abhishek Veeramalla (AI-Assisted DevOps Zero to Hero)
+- 💬 **Community:** Telegram channel for code, scripts & schedule updates
+- 🆓 **Cost:** Completely Free — 3+ episodes per week
+
+---
+
+---
+
+## 🔥 Bonus: AI-Driven DevSecOps PR Scanning Pipeline (SIM.AI)
+
+---
+
+### 1️⃣ The Problem & Solution
+
+| Issue | Detail |
+|-------|--------|
+| **AI-written code = new risks** | Automated code assistants often introduce hardcoded secrets, XSS, SQLi vulnerabilities |
+| **Traditional scanners** | Fixed rules, vendor lock-in, slow to adapt to custom patterns |
+| **The Solution** | Every GitHub PR triggers an AI security agent → scans code → posts results as PR comment automatically |
+
+> 🧠 **Interview One-Liner:**
+> *"Instead of running security scans manually, we hook an AI security agent to the GitHub PR webhook. Every pull request is automatically scanned for secrets, XSS, SQL injection, and unsafe patterns — and the results are posted directly as a PR comment with a merge recommendation."*
+
+---
+
+### 2️⃣ The 5-Block Pipeline Architecture
+
+```
+[Developer Opens GitHub Pull Request]
+             |
+             v
+  BLOCK 1: GitHub PR Trigger
+  (Webhook receives PR event payload)
+             |
+             v
+  BLOCK 2: Extract Data
+  (Parses: repo owner, PR number, commit tags)
+             |
+             v
+  BLOCK 3: Fetch Changed Files
+  (Isolates added/modified code buffers)
+             |
+             v
+  BLOCK 4: Security Agent Analyzer
+  (AI checks for: secrets, XSS, SQLi, unsafe deserialization)
+             |
+             v
+  BLOCK 5: Post PR Comment
+  (Publishes formatted Markdown security report to PR)
+```
+
+---
+
+### 3️⃣ What the AI Security Agent Checks For
+
+| Vulnerability | Example |
+|--------------|---------|
+| **Hardcoded secrets** | `const dbPassword = "SuperSecretPassword123!"` in source code |
+| **XSS (Cross-Site Scripting)** | Unsanitized user input rendered in HTML |
+| **SQL Injection** | Raw user input concatenated into SQL queries |
+| **Unsafe Deserialization** | Deserializing untrusted data without validation |
+
+---
+
+### 4️⃣ Step-by-Step Setup (SIM.AI Platform)
+
+#### Step 1 — Store Credentials Securely
+```
+SIM.AI → Settings → Secrets panel
+→ Upload GitHub Personal Access Token (PAT)
+  (Allows agent to post comments back to your PR)
+```
+
+#### Step 2 — Generate Pipeline via Natural Language Prompt
+
+Create a file `dev_sec_ops.md` with your requirements:
+
+```markdown
+Build an automated AI workflow that executes comprehensive static
+security analysis on every GitHub pull request.
+
+1. Capture the incoming webhook payload.
+2. Extract the pull request files and numbers.
+3. Pass the code snippets to a Security Agent to check for:
+   - Hardcoded corporate secrets or active API credentials.
+   - Cross-Site Scripting (XSS) and SQL Injection vulnerabilities.
+   - Unsafe deserialization architectures.
+4. Output a summary report table highlighting:
+   - File paths, severity scores, and recommendations
+   - Overall merge recommendation (Approve / Block)
+```
+
+Then in the Mothership co-pilot box:
+```
+"Build an AI workflow according to the requirements in dev_sec_ops.md"
+```
+> ⏱️ **Result:** Full 5-block pipeline auto-wired in under 60 seconds — zero manual drag-and-drop.
+
+#### Step 3 — Connect GitHub Webhook
+
+```
+SIM.AI → GitHub PR Trigger block → Copy Webhook Payload URL
+         ↓
+GitHub Repo → Settings → Webhooks → Add Webhook
+  Payload URL:   [paste SIM.AI webhook URL]
+  Content type:  application/json
+  Events:        Pull Requests ✓
+  → Save
+```
+
+---
+
+### 5️⃣ Live Demo: Hardcoded Secret Detection
+
+**Insecure code submitted in PR:**
+```javascript
+// backend/src/db.js — INSECURE CHANGE
+const dbPassword = "SuperSecretProductionPassword123!";
+```
+
+**AI Agent Output posted to GitHub PR (< 1 minute):**
+
+| File | Vulnerability | Severity | Recommendation |
+|------|--------------|----------|----------------|
+| `backend/src/db.js` | Hardcoded password in cleartext | **CRITICAL** | Move to environment variables immediately |
+
+**Merge Recommendation: 🔴 BLOCK MERGE**
+
+---
+
+### 6️⃣ Why SIM.AI Avoids Vendor Lock-In
+
+```
+Traditional Tool:  Fixed rules → need to reconfigure tool if requirements change
+SIM.AI Approach:   Change the TEXT PROMPT → platform auto-rewires the pipeline
+
+Examples of instant changes via prompt update:
+  → "Also block the merge automatically"
+  → "Add a Slack notification on CRITICAL findings"
+  → "Label the PR with 'security-review-needed'"
+```
+
+---
+
+### 7️⃣ DevSecOps / SIM.AI Interview Questions & Answers
+
+<details>
+<summary><strong>Q1: What is DevSecOps and how does AI improve it?</strong></summary>
+
+DevSecOps integrates security checks directly into the development pipeline (not after deployment). AI improves it by replacing fixed rule-based scanners with intelligent agents that can detect custom patterns, novel vulnerabilities, and context-specific risks — and can adapt when requirements change, simply by updating a natural language prompt.
+
+</details>
+
+<details>
+<summary><strong>Q2: What is a GitHub webhook and how is it used here?</strong></summary>
+
+A GitHub webhook is an HTTP callback that GitHub fires to a URL you specify when a specified event happens (like a PR being opened). In this pipeline, when a PR is submitted, GitHub sends the PR payload to the SIM.AI webhook endpoint, triggering the entire security analysis pipeline automatically.
+
+</details>
+
+<details>
+<summary><strong>Q3: Why is hardcoding passwords in source code a critical security risk?</strong></summary>
+
+Source code is committed to Git repositories where it can be accessed by anyone with repo access, exposed in logs, or leaked if the repo becomes public. Hardcoded credentials should always be externalized to environment variables (e.g., `process.env.DB_PASSWORD`) or secret management systems (AWS Secrets Manager, HashiCorp Vault).
+
+</details>
+
+<details>
+<summary><strong>Q4: What does a "BLOCK MERGE" recommendation mean in a security pipeline?</strong></summary>
+
+It means the AI agent has detected a vulnerability serious enough that the code should NOT be merged into the main branch until the issue is resolved. The developer must fix the flagged problem and resubmit the PR, which triggers another automated scan cycle.
+
+</details>
+
+<details>
+<summary><strong>Q5: How does prompt-driven pipeline generation avoid vendor lock-in?</strong></summary>
+
+In traditional tools, the pipeline logic is embedded in proprietary configuration files or GUI nodes — changing it requires learning the vendor's specific interface. With prompt-driven platforms like SIM.AI, the logic lives in a plain text file. Changing the behavior requires only editing natural language text — fully portable and vendor-agnostic.
+
+</details>
+
+---
+
+## 🔥 Bonus: AI-Powered kubectl Network Topology Visualizer (Luma AI)
+
+---
+
+### 1️⃣ The Problem & Concept
+
+| Issue | Detail |
+|-------|--------|
+| **kubectl = text only** | Raw terminal output — no visual cluster layout |
+| **Manual correlation** | Tracing Ingress → Service → Pod replicas requires many commands |
+| **The Solution** | A custom `kubectl` plugin that queries the cluster and outputs a **visual PNG architecture diagram** |
+
+> 🧠 **Interview One-Liner:**
+> *"Instead of parsing raw kubectl text to understand cluster topology, this plugin sends the cluster state through OpenAI (for logical analysis) and then Luma AI (for image generation), outputting a visual diagram showing Ingress rules, Services, Pod health states, and traffic flows."*
+
+---
+
+### 2️⃣ Dual-Model Processing Architecture
+
+```
+[kubectl Command Triggered]
+               |
+               v
+  MODEL 1: OpenAI API
+  (Reads cluster state → analyzes relationships between
+   Ingress, Services, Pods → generates descriptive text prompt)
+               |
+               v
+  MODEL 2: Luma AI Uni1 API
+  (Converts descriptive text → renders architectural PNG image)
+               |
+               v
+  [topology.png saved to output directory]
+```
+
+**Why two models?**
+- **OpenAI** = excellent at logical relationship extraction from structured data
+- **Luma AI** = specialized in high-fidelity image generation at lower cost than cloud-native image models
+
+---
+
+### 3️⃣ Setup & Installation
+
+#### Step 1 — Store API Keys (`.env.local`)
+
+```bash
+# Never hardcode keys in your script
+OPENAI_API_KEY=sk-proj-your-key-here
+LUMA_API_KEY=luma-key-your-key-here
+```
+
+#### Step 2 — Install as kubectl Plugin
+
+```bash
+# kubectl plugins must follow hyphenated naming convention
+# Plugin name: kubectl-pod_topology  → invoked as: kubectl pod-topology
+
+# Run the install script (packages Python deps + adds to system PATH)
+./install.sh
+```
+
+> ✅ After installation, the plugin is available as a native kubectl subcommand.
+
+#### Step 3 — Run the Topology Visualizer
+
+```bash
+# First verify your cluster has deployments running
+kubectl get pods,svc,ingress -n default
+
+# Trigger the visualization
+kubectl pod-topology <pod-name> <namespace> <output-dir>
+
+# Example:
+kubectl pod-topology nginx-topology-pod default ./output_dir/
+
+# Output: output_dir/topology.png (generated in ~30 seconds)
+```
+
+---
+
+### 4️⃣ Reading the Generated Diagram
+
+| Visual Element | What It Shows |
+|---------------|--------------|
+| **Outer boundary layer** | Ingress rules — including security flags like "No TLS" for insecure HTTP |
+| **Route arrows** | Traffic flow from public internet → load balancer → pods |
+| **🟢 Green icons** | Pod in `Running` state — healthy |
+| **🔴 Red icons** | Pod in `CrashLoopBackOff` or failed state |
+| **Service nodes** | Cluster services mapping traffic to pod groups |
+
+---
+
+### 5️⃣ Production Extension Ideas
+
+| Extension | How |
+|-----------|-----|
+| **Remote storage** | Replace local `./output_dir/` with Amazon S3 bucket or Google Drive folder |
+| **Scheduled scans** | Cron job runs `kubectl pod-topology` every hour → uploads diagram to S3 |
+| **Team access** | QA engineers, architects, and ops teams view diagrams without terminal access |
+| **CI/CD integration** | Run topology check on each deploy → flag topology changes for review |
+
+---
+
+### 6️⃣ Luma AI kubectl Plugin Interview Questions & Answers
+
+<details>
+<summary><strong>Q1: What is a kubectl plugin and how do you create one?</strong></summary>
+
+A kubectl plugin is any executable file placed in your system PATH that follows the naming convention `kubectl-<name>`. When you run `kubectl <name>`, kubectl automatically finds and executes it. You can write plugins in any language — this one is Python. The `install.sh` script packages the dependencies and registers the binary in the system PATH.
+
+</details>
+
+<details>
+<summary><strong>Q2: Why use two separate AI models (OpenAI + Luma) instead of one?</strong></summary>
+
+Each model is specialized: **OpenAI** excels at understanding structured data and extracting logical relationships (Ingress → Service → Pod). **Luma AI** specializes in converting text descriptions into detailed architectural images at lower cost than using cloud-native image models. Using specialized models reduces cost and improves output quality for each step.
+
+</details>
+
+<details>
+<summary><strong>Q3: What does a CrashLoopBackOff status indicate in a cluster diagram?</strong></summary>
+
+`CrashLoopBackOff` means the pod keeps crashing immediately after starting, and Kubernetes keeps restarting it in a loop. In the topology diagram, these pods are flagged with red health icons. Common causes: misconfigured environment variables, missing secrets, permission errors, or application startup failures.
+
+</details>
+
+<details>
+<summary><strong>Q4: What security concern does "No TLS" on an Ingress represent?</strong></summary>
+
+An Ingress without TLS means traffic between users and the cluster is transmitted over plain HTTP (unencrypted). This exposes sensitive data (passwords, tokens, session cookies) to interception attacks (man-in-the-middle). Production Ingress resources should always have TLS configured with a valid certificate (e.g., via cert-manager + Let's Encrypt).
+
+</details>
+
+<details>
+<summary><strong>Q5: Why store diagram outputs in S3 instead of locally for production?</strong></summary>
+
+Local storage is only accessible to the engineer running the command. S3 (or similar remote storage) makes the topology diagrams accessible to the entire team — QA, architects, managers — without requiring kubectl access or terminal skills. It also enables versioned history of cluster topology changes over time.
+
+</details>
+
+---
+
+## 🚀 Master Quick Revision Cheat Sheet (Complete — All Topics)
+
+```
+TRADITIONAL AI   ->  Predict  ->  AIOps, Auto Scaling
+GENERATIVE AI    ->  Create   ->  Code, Scripts, Manifests
+
+LLM = Neural Network trained on big data -> Answers from memory weights
+
+4 TIERS:
+  Chatbot    = Talk only
+  Assistant  = IDE inline help
+  Agent      = Plan + Execute autonomously
+  Scripting  = Python API + local LLM
+
+PROMPT ENGINEERING:
+  Zero-shot  = No examples
+  Few-shot   = Give 2-3 examples (teach org style)
+  CoT        = "Think step by step"
+  Token cost: Vague=~2500 | Precise=~150 (94% cheaper)
+
+4-PART PROMPT FRAMEWORK:
+  1. Context / 2. Instruction / 3. Examples / 4. Output format
+
+DEEPSEEK R1: $0.15/1M vs OpenAI $7.50/1M | ollama run deepseek-r1:1.5b
+LOCAL LLMs:  Security + Free  BUT needs GPU
+HOSTED LLMs: Easy + Fast      BUT cost + privacy risk
+
+SHELL SCRIPTING BEST PRACTICES:
+  1. Semantic filenames  2. Top comment block
+  3. Descriptive vars   4. Ctrl+I to explain AI code
+
+AIOPSE vs AI-ASSISTED:
+  AIOps = ML on live infra data (predictive)
+  AI-Assisted = Code generation (productivity)
+
+LOG ANALYSIS (Day 6):
+  Isolation Forest (scikit-learn) - unsupervised ML
+  contamination=0.1 | INFO=1, WARNING=2, ERROR=3, CRITICAL=4
+  Catches WARN-level silent anomalies static tools miss
+
+CREWAI AGENTS (Day 7):
+  pip install crewai | crewai create crew <name>
+  agents.yaml: role + goal + backstory
+  tasks.yaml:  description + expected_output + agent
+  crewai run → autonomous multi-agent pipeline
+
+RAG AGENT (Day 8 — Private Docs):
+  knowledge/ folder → drop your PDF in
+  .env: MODEL=ollama/llama3.1
+  .env: OPENAI_API_BASE=http://localhost:11434/v1
+  .env: OPENAI_API_KEY=na
+
+DOCKER MODEL RUNNER:
+  docker model pull/list/run/rm ai/smollm2
+  Source: hub.docker.com/u/ai | Needs Docker Desktop v4.40+
+
+WINDSURF/CASCADE (4 Envs):
+  EC2: user_data.sh → Nginx install + start
+  Docker: docker-compose.yml (4 containers)
+  K8s: CrashLoopBackOff → kubectl logs → auto-fix → port-forward
+  Lambda: IAM role + ZIP + upload + API Gateway
+
+DEVSECOPS PIPELINE (SIM.AI):
+  GitHub PR → Webhook → Extract → Scan → Post Comment
+  Checks: hardcoded secrets, XSS, SQLi, unsafe deserialization
+  Output: severity table + APPROVE/BLOCK merge recommendation
+  No-code: update the prompt → pipeline auto-rewires
+  NEVER hardcode passwords → use environment variables
+
+KUBECTL TOPOLOGY PLUGIN:
+  kubectl pod-topology <pod> <namespace> <output-dir>
+  OpenAI: cluster state → logical relationship text
+  Luma AI: text → PNG architecture diagram
+  Green icon = Running | Red icon = CrashLoopBackOff
+  No TLS on Ingress = CRITICAL security risk
+  Extend: replace local output with S3 bucket
+
+RETOOL ENTERPRISE AGENT:
+  GUI-based, under 10 min, no code needed
+  Retool Vectors = private RAG | SSO + RBAC built-in
+  Triggers: Chat | Email | API hook
+
+KUBERNETES TERMS:
+  CrashLoopBackOff = pod crash loop
+  kubectl logs     = read pod stderr/stdout
+  port-forward     = expose svc locally
+  Kind             = local K8s (no cloud LoadBalancer)
+  Ingress          = HTTP routing rules into cluster
+
+SERVERLESS TERMS:
+  Lambda   = on-demand function (no server)
+  API GW   = HTTP router → Lambda trigger
+  user_data.sh = EC2 bootstrap script (runs once)
+
+SECURITY TERMS:
+  XSS = Cross-Site Scripting (inject JS into pages)
+  SQLi = SQL Injection (inject SQL into queries)
+  TLS  = Transport Layer Security (encrypts HTTP traffic)
+  PAT  = Personal Access Token (GitHub auth)
+  RBAC = Role-Based Access Control
+  SSO  = Single Sign-On (Okta, Auth0, OneLogin)
+
+MTTR = Mean Time To Resolution
+  AIOps reduces MTTR by predicting, isolating, auto-fixing
+```
+
+---
+
+## 📬 Resources
+
+- 📺 **YouTube Channel:** Abhishek Veeramalla (AI-Assisted DevOps Zero to Hero)
+- 💬 **Community:** Telegram channel for code, scripts & schedule updates
+- 🆓 **Cost:** Completely Free — 3+ episodes per week
+
+---
+
+*📝 Last Updated: July 2026 | Days 0–8 + All Bonus Sections (SIM.AI, Luma AI, Windsurf, Retool, Docker Model Runner, DeepSeek) | Interview Prep Summary*
