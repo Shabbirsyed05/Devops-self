@@ -818,3 +818,353 @@ DeepSeek = The only restaurant that lets you
 ---
 
 *📅 Last Updated: August 2026 | Source: YouTube – Abhishek Veeramalla*
+
+=================================
+
+# RAG (Retrieval-Augmented Generation) — Zero to Hero
+
+# 🔍 RAG (Retrieval-Augmented Generation) — Zero to Hero
+> **Complete Guide for Learning & Interviews** | Based on tutorial by *Abhishek Veeramalla*
+
+---
+
+## 📌 What Is This About? (One-Line Summary)
+
+> **RAG lets an LLM answer questions using YOUR private documents — without retraining the model.
+> It works by searching relevant document chunks and injecting them into the prompt before asking the LLM.**
+
+---
+
+## 🧩 Key Concepts (Plain English Glossary)
+
+| Term | What It Means |
+|---|---|
+| **LLM** | AI model (e.g., GPT-4, DeepSeek) that generates text responses |
+| **RAG** | A technique to give LLMs access to private/real-time data via retrieval |
+| **Embedding** | A list of numbers (vector) that represents the *meaning* of a text |
+| **Vector** | A point in multi-dimensional space; similar meanings = nearby points |
+| **Cosine Similarity** | A score (0–1) measuring how semantically close two vectors are |
+| **Chunking** | Breaking large documents into smaller pieces before embedding |
+| **Vector Database** | A database that stores and searches embeddings (e.g., ChromaDB) |
+| **Collection** | A group of stored embeddings in a vector DB (like a table in SQL) |
+| **Augmented Prompt** | A prompt = retrieved context + system instructions + user query |
+| **Hallucination** | When an LLM confidently makes up an incorrect answer |
+
+---
+
+## 💡 Why RAG Exists — The Problem
+
+### ❌ Problem 1: LLMs Have a Training Cutoff
+> LLMs only know what they were trained on.
+> They have no knowledge of events, policies, or documents created after their cutoff date.
+
+### ❌ Problem 2: LLMs Don't Know Your Private Data
+> Your company's leave policies, runbooks, Confluence pages, SharePoint docs —
+> an LLM has never seen any of it.
+
+### ❌ Problem 3: You Can't Just Paste Everything
+> You *could* manually paste a document into a prompt — but what if your org has
+> **10,000 internal documents**? That's impossible to manage and too expensive.
+
+---
+
+## ✅ The RAG Solution — 3 Simple Stages
+
+```
+User Query
+    ↓
+┌──────────────────────────────────────┐
+│  R → RETRIEVE                        │
+│      Search vector DB for relevant   │
+│      document chunks                 │
+├──────────────────────────────────────┤
+│  A → AUGMENT                         │
+│      Merge retrieved chunks +        │
+│      system prompt + user query      │
+├──────────────────────────────────────┤
+│  G → GENERATE                        │
+│      Send augmented prompt to LLM    │
+│      to get a grounded answer        │
+└──────────────────────────────────────┘
+    ↓
+Accurate, hallucination-free Answer
+```
+
+---
+
+## 🔬 Core Concept 1 — Embeddings & Semantic Search
+
+### Why Keyword Search Fails
+
+```
+Document says:  "leave policy"
+User asks:      "How many annual day offs do I get?"
+
+❌ Keyword Search → No match (different words)
+✅ Semantic Search → Match! (same meaning)
+```
+
+### What an Embedding Looks Like
+
+```python
+# The word "leave policy" becomes a vector like:
+[0.023, -0.145, 0.867, 0.334, ..., 0.091]
+# ← 1536 numbers representing its meaning →
+```
+
+> Model used: `text-embedding-3-small` (OpenAI) — lightweight & fast
+
+### How Cosine Similarity Works
+
+```
+"leave policy"   →  Vector A  ────────┐
+"annual day off" →  Vector B  ────────┤→ Cosine Score: 0.94 ✅ (very similar!)
+
+"banana recipe"  →  Vector C  ────────┘→ Cosine Score: 0.12 ❌ (not related)
+```
+
+> Score **closer to 1.0** = semantically similar
+> Score **closer to 0.0** = unrelated
+
+---
+
+## 🔬 Core Concept 2 — Chunking
+
+### Why Chunking Is Necessary
+
+> Embedding an entire 50-page document into ONE vector loses precision.
+> The vector becomes a "blurry average" of everything.
+
+### How Chunking Works
+
+```
+Original Document (2000 tokens)
+         ↓
+┌────────────────────────────────────┐
+│ Chunk 1: tokens 1–100             │ → Embedding 1
+│ Chunk 2: tokens 101–200           │ → Embedding 2
+│ Chunk 3: tokens 201–300           │ → Embedding 3
+│ ...                               │ → ...
+└────────────────────────────────────┘
+```
+
+> **Typical chunk size:** 100–500 tokens
+> **Rule of thumb:** Smaller chunks = more precise retrieval
+
+---
+
+## 🔬 Core Concept 3 — Vector Databases (ChromaDB)
+
+### What a Vector Database Does
+
+```
+Relational DB (SQL)        Vector DB (ChromaDB)
+────────────────────        ────────────────────
+Table      →               Collection
+Row        →               Document + its Embedding
+WHERE      →               Cosine Similarity Search
+```
+
+### ChromaDB at a Glance
+
+- Runs **locally** (via Docker or embedded Python)
+- Stores **text chunks + their embeddings** together
+- Returns **top-N most similar chunks** for any query
+- Free and open source ✅
+
+---
+
+## 🚀 Full RAG Pipeline — Step by Step
+
+### Step 1 — Prepare & Chunk Documents
+
+```python
+# Read your internal documents
+documents = load_files(["leave_policy.txt", "runbook.txt"])
+
+# Split into chunks
+chunks = chunk_text(documents, chunk_size=200, overlap=20)
+# Result: ["Employees get 12 days of...", "Sick leave policy states...", ...]
+```
+
+---
+
+### Step 2 — Embed & Store in ChromaDB
+
+```python
+# Generate embeddings for each chunk
+embeddings = embedding_model.encode(chunks)
+# Each chunk → [0.023, -0.145, ..., 0.091]
+
+# Store in ChromaDB collection
+collection = chromadb.create_collection("company_docs")
+collection.add(documents=chunks, embeddings=embeddings)
+```
+
+---
+
+### Step 3 — Query Retrieval
+
+```python
+user_query = "How many sick leaves do I have?"
+
+# Convert query to embedding
+query_embedding = embedding_model.encode(user_query)
+
+# Search ChromaDB for top 3 similar chunks
+results = collection.query(
+    query_embeddings=[query_embedding],
+    n_results=3
+)
+# Returns: ["Sick leave policy states 10 days per year...", ...]
+```
+
+---
+
+### Step 4 — Build Augmented Prompt
+
+```python
+system_prompt = """
+You are a helpful HR assistant.
+Answer ONLY using the provided context.
+Do NOT hallucinate or make up information.
+"""
+
+augmented_prompt = f"""
+{system_prompt}
+
+Context:
+{results[0]}
+{results[1]}
+{results[2]}
+
+User Question: {user_query}
+"""
+```
+
+---
+
+### Step 5 — Generate the Answer
+
+```python
+response = openai.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": augmented_prompt}]
+)
+
+print(response.choices[0].message.content)
+# → "You are entitled to 10 sick leaves per year as per the company policy."
+```
+
+---
+
+## 🏗️ Full Architecture Diagram
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    INDEXING PHASE (One-time)             │
+│                                                          │
+│  Raw Docs → Chunking → Embedding Model → ChromaDB        │
+│  (PDFs, TXTs, Confluence pages...)                       │
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│                    QUERY PHASE (Per request)             │
+│                                                          │
+│  User Query                                              │
+│      ↓                                                   │
+│  Embedding Model (query → vector)                        │
+│      ↓                                                   │
+│  ChromaDB (cosine similarity search → top chunks)        │
+│      ↓                                                   │
+│  Augmented Prompt (chunks + system prompt + query)       │
+│      ↓                                                   │
+│  LLM (gpt-4o-mini / DeepSeek)                           │
+│      ↓                                                   │
+│  ✅ Grounded, accurate answer                            │
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🛠️ Prerequisites & Setup
+
+| Requirement | Purpose |
+|---|---|
+| **Python** | Run notebooks and pipeline scripts |
+| **Docker** | Run ChromaDB or local Ollama |
+| **OpenAI API Key** | Embedding model + completion model |
+| **Jupyter Notebooks** | Interactive step-by-step execution |
+| **ChromaDB** | Local vector database |
+
+```bash
+pip install chromadb openai langchain tiktoken
+docker run -p 8000:8000 chromadb/chroma
+```
+
+---
+
+## 📝 Interview & Job Talking Points
+
+> Memorize these — they demonstrate deep, practical understanding:
+
+1. **"RAG solves two core LLM limitations: training cutoff dates and lack of access to private organizational data — without requiring model retraining."**
+
+2. **"Keyword search fails for semantic queries. Embeddings convert text into high-dimensional vectors where meaning is encoded as position in space. Cosine similarity then finds the closest matching chunks."**
+
+3. **"We chunk documents before embedding because a single vector for a large document becomes a diluted average of all its content, reducing retrieval precision."**
+
+4. **"ChromaDB is a vector database that stores chunks with their embeddings in collections. At query time, the user's query is embedded and a cosine similarity search returns the top-N relevant chunks."**
+
+5. **"The augmented prompt combines: (1) a system prompt preventing hallucination, (2) retrieved context chunks, and (3) the user's question — before sending to the LLM."**
+
+6. **"RAG is more cost-effective than fine-tuning for knowledge updates. Fine-tuning retrains the model weights; RAG just updates the vector database."**
+
+---
+
+## 📊 RAG vs Alternatives
+
+| Approach | Pros | Cons |
+|---|---|---|
+| **Paste doc in prompt** | Simple, fast | Fails at scale (1000s of docs) |
+| **Fine-tuning** | Model "learns" the data | Expensive, slow, hard to update |
+| **RAG** ✅ | Scalable, updatable, cheap | Requires vector DB setup |
+
+---
+
+## ⚡ TL;DR (30-Second Version)
+
+> LLMs don't know your private data.
+> RAG fixes this: **chunk** your docs → **embed** them → **store** in a vector DB.
+> At query time: **embed** the question → **search** the DB → **inject** top results into the prompt → LLM gives a **grounded answer**.
+> The magic glue is **embeddings** (meaning as numbers) + **cosine similarity** (finding close meanings).
+
+---
+
+## 🧭 Chef Analogy for Memory
+
+```
+Think of RAG like a chef preparing a dish:
+
+  LLM          = The Chef (can cook, but only from memory)
+  Your Docs    = The Recipe Book (private knowledge)
+  Chunking     = Cutting the book into individual recipe cards
+  Embeddings   = Tagging each card with flavor profile numbers
+  Vector DB    = The organized recipe card cabinet
+  Retrieval    = Finding the 3 most relevant recipe cards
+  Augmentation = Handing those cards + instructions to the Chef
+  Generation   = Chef cooks the perfect dish using the cards
+```
+
+---
+
+## 🔗 Resources
+
+- [ChromaDB Docs](https://docs.trychroma.com)
+- [OpenAI Embeddings](https://platform.openai.com/docs/guides/embeddings)
+- [LangChain RAG Guide](https://python.langchain.com/docs/tutorials/rag/)
+- [Abhishek Veeramalla GitHub](https://github.com/iam-veeramalla)
+
+---
+
+*📅 Last Updated: August 2026 | Source: YouTube – Abhishek Veeramalla*
