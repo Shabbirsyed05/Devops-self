@@ -330,3 +330,187 @@ claude mcp list
 *📅 Last updated: August 2026 | Based on: Claude Code Zero to Hero (60 min tutorial)*
 
 ================================================================
+
+ # Claude Code + OpenRouter + DeepSeek V4 Flash
+
+
+# 🤖 Claude Code + OpenRouter + DeepSeek V4 Flash
+> **Complete Setup Guide** | Based on tutorial by *Abhishek Veeramalla*
+
+---
+
+## 📌 What Is This About? (Simple Summary)
+
+> **Think of it like this:**
+> Claude Code is a smart AI coding assistant (CLI tool), but using it with premium models like Claude Opus/Sonnet is **very expensive**.
+> This guide shows you how to use the **same Claude Code tool** but route it through **OpenRouter** to use **DeepSeek V4 Flash** — a cheap, capable open-source model.
+
+---
+
+## 🧩 Key Concepts (Plain English)
+
+| Term | What It Means |
+|---|---|
+| **Claude Code** | A command-line AI coding agent made by Anthropic |
+| **Frontier Models** | Top-tier expensive AI models (Claude Opus, GPT-4, etc.) |
+| **OpenRouter** | A single API gateway that lets you access many AI models |
+| **DeepSeek V4 Flash** | A fast, cheap, open-source model with great coding ability |
+| **API Key** | A secret password to authenticate and use an AI service |
+| **Environment Variable** | A system-level config value your terminal/app reads |
+
+---
+
+## 💡 The Problem & Solution
+
+### ❌ Problem
+- Claude Code's default models (Opus/Sonnet) are **expensive**
+- Self-hosting open models needs a **high-end GPU** (costly hardware)
+- Heavy daily usage = **$100–$200/month** bill
+
+### ✅ Solution
+- Use **OpenRouter** as a middleman
+- Point Claude Code to OpenRouter's API instead of Anthropic's
+- Use **DeepSeek V4 Flash** — a powerful open-source model served by OpenRouter
+
+---
+
+## 💰 Cost Comparison
+
+| Model / Plan | Cost |
+|---|---|
+| Claude Sonnet/Opus (Anthropic) | ~$200/month (heavy usage) |
+| **DeepSeek V4 Flash via OpenRouter** | **~$3–$4/month (~₹200–₹300 INR)** |
+| DeepSeek Input tokens | $0.14 per 1M tokens |
+| DeepSeek Output tokens | $0.28 per 1M tokens |
+
+> 💸 **Savings = ~98%** compared to frontier model plans!
+
+---
+
+## 🌟 Why DeepSeek V4 Flash?
+
+- ✅ **1 Million token context window** — handles huge codebases
+- ✅ **Competitive coding performance** — great for daily dev tasks
+- ✅ **Very low cost** — fraction of a cent per request
+- ✅ Easily swappable via OpenRouter with models like:
+  - `Qwen Coder`
+  - `GLM`
+  - Other open-source models
+
+---
+
+## 🔧 Step-by-Step Setup
+
+### Step 1 — Install Claude Code CLI
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+> Installs Claude Code globally on your machine.
+
+---
+
+### Step 2 — Set Up OpenRouter
+
+1. Go to [openrouter.ai](https://openrouter.ai)
+2. **Create an account**
+3. Navigate to **API Keys** → Generate a new key
+4. **Add credits** (start with ~$5 — lasts weeks/months!)
+
+---
+
+### Step 3 — Redirect API Endpoint to OpenRouter
+
+> Instead of hitting Anthropic's server, we point Claude Code to OpenRouter.
+
+```bash
+export ANTHROPIC_BASE_URL="https://openrouter.ai/api/v1"
+export ANTHROPIC_API_KEY="your-openrouter-api-key-here"
+```
+
+> 💡 Add these to your `~/.bashrc` or `~/.zshrc` to make them permanent.
+
+---
+
+### Step 4 — Map Model Aliases to DeepSeek V4 Flash
+
+> Claude Code internally uses alias names like `haiku` or `sonnet`.
+> We remap those aliases to point to DeepSeek V4 Flash.
+
+```bash
+export CLAUDE_MODEL_ALIAS_HAIKU="deepseek/deepseek-chat-v4-5"
+export CLAUDE_MODEL_ALIAS_SONNET="deepseek/deepseek-chat-v4-5"
+```
+
+> ✅ Now whenever Claude Code tries to use Haiku or Sonnet, it uses DeepSeek instead.
+
+---
+
+### Step 5 — Verify the Connection
+
+```bash
+claude
+```
+
+Inside Claude Code CLI:
+
+```
+/model
+```
+
+- Select the mapped DeepSeek model
+- Ask it: *"Which model are you running on?"*
+- It should confirm: **DeepSeek V4 Flash** ✅
+
+---
+
+## 🔁 Quick Recap (Memory Aid)
+
+```
+Claude Code CLI
+     ↓
+(Instead of Anthropic API)
+     ↓
+OpenRouter API Gateway
+     ↓
+DeepSeek V4 Flash (cheap + powerful)
+```
+
+---
+
+## 📝 Interview & Job Talking Points
+
+> Use these to explain the concept clearly in interviews or discussions:
+
+1. **"I reduced AI coding assistant costs by ~98% by routing Claude Code through OpenRouter to use DeepSeek V4 Flash instead of expensive frontier models."**
+
+2. **"OpenRouter acts as a unified API gateway — you can swap between open-source models without changing your workflow."**
+
+3. **"Environment variables like `ANTHROPIC_BASE_URL` and model alias overrides allow redirecting API calls without modifying any source code."**
+
+4. **"DeepSeek V4 Flash offers a 1M context window and strong coding performance at a fraction of the cost of closed models."**
+
+5. **"This approach avoids the need for expensive local GPU hardware for self-hosting, while still using open-source models."**
+
+---
+
+## ⚡ TL;DR (30-Second Version)
+
+> Claude Code is an AI coding CLI. By default it's expensive.
+> Use **OpenRouter** as an API middleman + **DeepSeek V4 Flash** as the model.
+> Cost drops from **~$200/month → ~$3–4/month**.
+> Done with just 4 environment variable exports. No code changes needed.
+
+---
+
+## 🔗 Resources
+
+- [Claude Code Docs](https://docs.anthropic.com/en/docs/claude-code)
+- [OpenRouter](https://openrouter.ai)
+- [DeepSeek Models on OpenRouter](https://openrouter.ai/deepseek)
+
+---
+
+*📅 Last Updated: August 2026 | Source: YouTube – Abhishek Veeramalla*
+
