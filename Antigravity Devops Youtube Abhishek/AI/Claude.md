@@ -514,3 +514,307 @@ DeepSeek V4 Flash (cheap + powerful)
 
 *📅 Last Updated: August 2026 | Source: YouTube – Abhishek Veeramalla*
 
+=======================================
+
+# 🧠 DeepSeek Harness — Explained Simply
+
+# 🧠 DeepSeek Harness — Explained Simply
+> **Complete Guide for Learning & Interviews** | Based on tutorial by *Abhishek Veeramalla*
+
+---
+
+## 📌 What Is This About? (One-Line Summary)
+
+> **DeepSeek open-sourced the "engine room" behind their AI coding agent — the part that tells the LLM *how* to think, what to remember, and what tools to use. That hidden layer is called the Harness.**
+
+---
+
+## 🧩 Key Concepts (Plain English Glossary)
+
+| Term | What It Means |
+|---|---|
+| **LLM** | The AI brain (e.g., DeepSeek, Claude, GPT) that generates responses |
+| **Harness** | The wrapper around the LLM — manages prompts, memory, tools & context |
+| **System Prompt** | Hidden instructions sent to the LLM before your message |
+| **Agent** | An LLM + Harness working together to complete multi-step tasks |
+| **Plugin** | A modular, swappable component that adds a feature to the harness |
+| **Cordis Framework** | The plugin system DeepSeek Harness is built on |
+| **Trajectory Tab** | A live log showing exactly what the agent is thinking and doing |
+| **Open Source** | Publicly available code anyone can read, modify, and learn from |
+
+---
+
+## 💡 The Core Insight — What Is a Harness?
+
+```
+WITHOUT a Harness:
+  You → LLM → Response
+
+WITH a Harness (Agent):
+  You
+   ↓
+[Harness Layer]
+  ├── Builds the system prompt
+  ├── Reads your codebase/repo context
+  ├── Manages memory across turns
+  ├── Handles tool calls (file read/write, search, etc.)
+  └── Dispatches polished request
+         ↓
+       LLM
+         ↓
+   Smart Response
+```
+
+> 🔑 **Key Insight:** Two agents using the *same LLM* can perform very differently — the harness is what separates a great coding agent from a mediocre one.
+
+---
+
+## 🚨 The Problem with Existing Agents
+
+| Agent | Harness Visibility |
+|---|---|
+| Claude Code (Anthropic) | ❌ Closed source — black box |
+| GitHub Copilot | ❌ Closed source — black box |
+| **DeepSeek Harness** | ✅ **Fully open source — inspect everything** |
+
+> Most companies treat their harness as a **trade secret**. DeepSeek made theirs fully public.
+
+---
+
+## 🌟 Why DeepSeek Harness Went Viral
+
+### 1. 💯 100% Open Source
+- You can see *exactly* how prompts are built
+- Inspect how memory is stored and retrieved
+- Understand how repo context is injected into LLM calls
+
+### 2. 🔭 Full Observability — The Trajectory Tab
+- Every agent action has a **live trace log**
+- Shows:
+  - The injected system prompt
+  - Workspace/repo context loaded
+  - Tool calls made
+  - Internal reasoning steps
+- Makes debugging agent behavior straightforward
+
+### 3. 🔌 Modular Plugin Architecture
+- Built on the **Cordis Framework**
+- Contains **160+ plugins**
+- Each feature = one plugin = independently swappable
+- Examples of plugins:
+  - Memory manager
+  - File reader
+  - Terminal executor
+  - UI widget renderer
+  - Token cost tracker
+
+---
+
+## 🔧 Installation & Setup
+
+### Step 1 — Install via npm/npx
+
+```bash
+npx dsh-web
+```
+
+> Or install globally:
+
+```bash
+npm install -g dsh
+dsh web
+```
+
+---
+
+### Step 2 — Launch the Web UI
+
+```
+Local URL: http://localhost:3080
+```
+
+> Opens a browser-based chat interface connected to the harness engine.
+
+---
+
+### Step 3 — Configure Your Model
+
+1. Go to ⚙️ **Settings** in the UI
+2. Add your API key for:
+   - DeepSeek
+   - OpenAI
+   - Or any supported provider
+3. Switch between models freely — no code changes needed
+
+---
+
+## 🔌 Plugin Architecture Deep Dive
+
+### How Plugins Work
+
+```
+Cordis Framework (Core)
+   ├── Plugin: memory-manager
+   ├── Plugin: system-prompt-builder
+   ├── Plugin: repo-context-reader
+   ├── Plugin: tool-executor
+   ├── Plugin: token-cost-tracker
+   ├── Plugin: slack-notifier        ← custom (you can build this)
+   ├── Plugin: email-dispatcher      ← custom (you can build this)
+   └── Plugin: ui-widget             ← custom (you can build this)
+```
+
+### Disabling or Tweaking Existing Plugins
+
+Edit the CLI config file in your profile directory:
+
+```yaml
+# cordis.patch.yaml
+
+plugins:
+  memory-manager:
+    enabled: false       # disable a plugin
+  system-prompt-builder:
+    maxTokens: 2000      # tweak a plugin's settings
+```
+
+---
+
+## 🛠️ Building Your Own Custom Plugins
+
+### Switch to Creator Mode
+
+1. Open DeepSeek Harness UI
+2. Under **Agent Presets** → select **Creator Mode**
+3. Now prompt the agent to build a plugin for you!
+
+### Example Prompts
+
+```
+"Add a Slack notification plugin that alerts me when a task completes."
+```
+
+```
+"Build a token cost tracker that shows total spend per session."
+```
+
+```
+"Add an email dispatcher plugin triggered after each agent run."
+```
+
+> 🤯 The agent **writes its own plugin code**, shows you a diff, and you **approve the change in real time** — no manual coding needed.
+
+### Plugin Build Workflow
+
+```
+You describe the feature
+       ↓
+Agent generates plugin code
+       ↓
+You review the diff in UI
+       ↓
+Approve → Plugin is live instantly
+```
+
+---
+
+## 🔍 Trajectory Tab — Full Observability
+
+> This is what makes DeepSeek Harness unique for **learning and debugging**:
+
+For every agent action, you can see:
+
+```
+Trajectory Log Example:
+─────────────────────────────
+[SYSTEM PROMPT INJECTED]
+  → "You are an expert software engineer..."
+  → "Current workspace: /my-project"
+  → "Available tools: read_file, write_file, run_command..."
+
+[CONTEXT LOADED]
+  → Repo structure scanned: 42 files
+  → Relevant files injected: main.py, utils.py
+
+[TOOL CALL]
+  → read_file("src/api.py")
+
+[LLM RESPONSE]
+  → "I see the bug is on line 34..."
+
+[TOOL CALL]
+  → write_file("src/api.py", fixed_content)
+─────────────────────────────
+```
+
+> 🎯 Perfect for **understanding how agents actually work** — not just using them as a black box.
+
+---
+
+## 📊 Quick Comparison Table
+
+| Feature | Claude Code / Copilot | DeepSeek Harness |
+|---|---|---|
+| Open Source | ❌ | ✅ |
+| View System Prompts | ❌ | ✅ |
+| Trajectory Logging | ❌ | ✅ |
+| Custom Plugins | ❌ | ✅ |
+| Plugin Count | Unknown | 160+ |
+| Self-hostable | ❌ | ✅ |
+| Model-agnostic | Partial | ✅ |
+
+---
+
+## 📝 Interview & Job Talking Points
+
+> Memorize these — they clearly demonstrate deep understanding:
+
+1. **"A Harness is the orchestration layer around an LLM — it handles system prompts, memory, repo context, and tool use. The LLM itself is just one component."**
+
+2. **"DeepSeek Harness went viral because it's the first major open-source agent harness — you can inspect every prompt, tool call, and memory injection through the Trajectory Tab."**
+
+3. **"It's built on the Cordis plugin framework with 160+ modular components. You can disable, tweak, or add plugins using YAML config or by prompting the agent itself in Creator Mode."**
+
+4. **"The Trajectory Tab provides full agent observability — showing injected system prompts, loaded context, and tool call sequences — which makes debugging and auditing agent behavior straightforward."**
+
+5. **"Two agents using the same LLM can behave very differently depending on their harness. This is why harness engineering is a critical emerging skill in AI/ML engineering roles."**
+
+---
+
+## ⚡ TL;DR (30-Second Version)
+
+> An AI agent = **LLM + Harness**.
+> The Harness is the hidden layer that builds prompts, manages memory, reads code context, and calls tools.
+> Most agents keep this layer secret.
+> **DeepSeek open-sourced theirs** — 160+ plugins, full trace logs, and you can build new plugins just by asking the agent.
+> This is a **big deal** for transparency, learning, and customization.
+
+---
+
+## 🧭 Mental Model for Long-Term Memory
+
+```
+Think of an AI agent like a chef in a restaurant:
+
+  LLM        = The Chef (cooking skill)
+  Harness    = The Kitchen Setup
+                ├── Recipe book (system prompt)
+                ├── Pantry inventory (repo context)
+                ├── Utensils (tools)
+                └── Order tracker (memory)
+
+DeepSeek = The only restaurant that lets you
+           walk into the kitchen and see everything.
+```
+
+---
+
+## 🔗 Resources
+
+- [DeepSeek Harness GitHub](https://github.com/deepseek-ai/DeepSeek-Harness)
+- [Cordis Framework](https://github.com/cordiverse/cordis)
+- [DeepSeek Models](https://platform.deepseek.com)
+
+---
+
+*📅 Last Updated: August 2026 | Source: YouTube – Abhishek Veeramalla*
