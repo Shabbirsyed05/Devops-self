@@ -1,28 +1,44 @@
-# Claude Code Zero to Hero in 60 Minutes
+# 📚 AI Engineering Reference Guide
 
-# 🤖 Claude Code — Zero to Hero: Interview & Job Reference Guide
+> **Source:** Video tutorials by *Abhishek Veeramalla*
+> **Purpose:** Comprehensive notes for job interviews and daily AI/engineering use.
 
-> **Source:** "Claude Code Zero to Hero in 60 Minutes" by Abhishek Veeramalla  
+---
+
+## 📋 Table of Contents
+
+1. [Claude Code — Zero to Hero](#1-claude-code--zero-to-hero)
+2. [Claude Code + OpenRouter + DeepSeek V4 Flash](#2-claude-code--openrouter--deepseek-v4-flash)
+3. [DeepSeek Harness — Explained Simply](#3-deepseek-harness--explained-simply)
+4. [RAG (Retrieval-Augmented Generation) — Zero to Hero](#4-rag-retrieval-augmented-generation--zero-to-hero)
+
+---
+
+<br>
+
+# 1. Claude Code — Zero to Hero
+
+> **Source:** "Claude Code Zero to Hero in 60 Minutes" by Abhishek Veeramalla
 > **Purpose:** Simple, memorable notes for job interviews and daily engineering use.
 
 ---
 
-## 📌 Table of Contents
+### 📌 Table of Contents
 
-1. [AI Assistant vs. AI Agent](#1-ai-assistant-vs-ai-agent)
-2. [Installation & Prerequisites](#2-installation--prerequisites)
-3. [Essential CLI Shortcuts](#3-essential-cli-shortcuts)
-4. [Core Slash Commands](#4-core-slash-commands)
-5. [Permission Modes & Security](#5-permission-modes--security)
-6. [Context Management — CLAUDE.md](#6-context-management--claudemd)
-7. [Event Hooks](#7-event-hooks)
-8. [Model Context Protocol (MCP)](#8-model-context-protocol-mcp)
-9. [Skills & Plugins](#9-skills--plugins)
-10. [Quick Interview Cheat Sheet](#quick-interview-cheat-sheet)
+- [1.1 AI Assistant vs. AI Agent](#11-ai-assistant-vs-ai-agent)
+- [1.2 Installation & Prerequisites](#12-installation--prerequisites)
+- [1.3 Essential CLI Shortcuts](#13-essential-cli-shortcuts)
+- [1.4 Core Slash Commands](#14-core-slash-commands)
+- [1.5 Permission Modes & Security](#15-permission-modes--security)
+- [1.6 Context Management — CLAUDE.md](#16-context-management--claudemd)
+- [1.7 Event Hooks](#17-event-hooks)
+- [1.8 Model Context Protocol (MCP)](#18-model-context-protocol-mcp)
+- [1.9 Skills & Plugins](#19-skills--plugins)
+- [1.10 Quick Interview Cheat Sheet](#110-quick-interview-cheat-sheet)
 
 ---
 
-## 1. AI Assistant vs. AI Agent
+### 1.1 AI Assistant vs. AI Agent
 
 | Feature | AI Assistant (e.g., ChatGPT) | AI Agent (e.g., Claude Code) |
 |---|---|---|
@@ -30,13 +46,13 @@
 | **Human involvement** | Human must copy-paste & run code | Agent reads, edits, runs, and deploys |
 | **Example action** | "Here's how to write a test" | Reads your repo → writes test → runs it → fixes errors |
 
-> **🧠 Simple memory tip:**  
-> *Assistant = advisor. Agent = doer.*  
+> **🧠 Simple memory tip:**
+> *Assistant = advisor. Agent = doer.*
 > An assistant tells you what to cook; an agent goes to the kitchen and cooks it.
 
 ---
 
-## 2. Installation & Prerequisites
+### 1.2 Installation & Prerequisites
 
 - **Supported OS:** macOS, Linux, or Windows WSL
 - **Requires:** Active Claude subscription (Pro or Max plan)
@@ -51,7 +67,7 @@ curl -fsSL https://claude.ai/install.sh | sh
 
 ---
 
-## 3. Essential CLI Shortcuts
+### 1.3 Essential CLI Shortcuts
 
 | Shortcut | What It Does | When to Use |
 |---|---|---|
@@ -61,23 +77,24 @@ curl -fsSL https://claude.ai/install.sh | sh
 | `claude --resume` | **Reconnect** to a previous session | Accidentally closed terminal, pick up where you left off |
 | `Shift + Tab` | **Cycle permission modes** | Switch between manual/auto execution modes |
 
-> **🧠 Simple memory tip:**  
+> **🧠 Simple memory tip:**
 > *One Esc = pause. Two Esc = time machine. Two Ctrl+C = goodbye.*
 
 ---
 
-## 4. Core Slash Commands
+### 1.4 Core Slash Commands
 
 Slash commands are typed directly inside the Claude Code terminal.
 
-### `/model` — Switch AI Models
-- Choose the right model for the task complexity:
+#### `/model` — Switch AI Models
 
-  | Model | Best For |
-  |---|---|
-  | **Haiku** | Fast, cheap, simple tasks |
-  | **Sonnet** | Balanced — everyday coding |
-  | **Opus** | Complex reasoning, architecture |
+Choose the right model for the task complexity:
+
+| Model | Best For |
+|---|---|
+| **Haiku** | Fast, cheap, simple tasks |
+| **Sonnet** | Balanced — everyday coding |
+| **Opus** | Complex reasoning, architecture |
 
 ```
 /model sonnet
@@ -85,7 +102,8 @@ Slash commands are typed directly inside the Claude Code terminal.
 
 ---
 
-### `/usage` — Monitor Token Consumption
+#### `/usage` — Monitor Token Consumption
+
 - Shows real-time token usage and plan limits.
 - **Why it matters:** Each plan has a token cap — exceeding it slows or stops Claude.
 
@@ -95,7 +113,8 @@ Slash commands are typed directly inside the Claude Code terminal.
 
 ---
 
-### `/init` — Generate CLAUDE.md Memory File
+#### `/init` — Generate CLAUDE.md Memory File
+
 - Scans your entire repository and creates a `CLAUDE.md` file.
 - This file teaches Claude about your project structure automatically.
 
@@ -105,7 +124,7 @@ Slash commands are typed directly inside the Claude Code terminal.
 
 ---
 
-### `/clear` & `/compact` — Manage Context Window
+#### `/clear` & `/compact` — Manage Context Window
 
 | Command | What It Does |
 |---|---|
@@ -116,9 +135,9 @@ Slash commands are typed directly inside the Claude Code terminal.
 
 ---
 
-## 5. Permission Modes & Security
+### 1.5 Permission Modes & Security
 
-### Execution Modes (cycle with `Shift + Tab`)
+#### Execution Modes *(cycle with `Shift + Tab`)*
 
 | Mode | Behavior | Best For |
 |---|---|---|
@@ -129,7 +148,7 @@ Slash commands are typed directly inside the Claude Code terminal.
 
 ---
 
-### Custom Permissions (`/permissions`)
+#### Custom Permissions (`/permissions`)
 
 Define explicit **allow** or **deny** rules for what Claude can do.
 
@@ -142,7 +161,7 @@ Define explicit **allow** or **deny** rules for what Claude can do.
 
 ---
 
-### Config Scopes (Where Settings Are Saved)
+#### Config Scopes *(Where Settings Are Saved)*
 
 | File | Scope | Git Tracked? |
 |---|---|---|
@@ -154,14 +173,14 @@ Define explicit **allow** or **deny** rules for what Claude can do.
 
 ---
 
-## 6. Context Management — CLAUDE.md
+### 1.6 Context Management — CLAUDE.md
 
-### What is CLAUDE.md?
+#### What is CLAUDE.md?
+
 A special Markdown file that acts as **Claude's memory for your project.**
-
 Think of it as an onboarding doc you'd give a new developer — but for the AI.
 
-### What to Put in CLAUDE.md
+#### What to Put in CLAUDE.md
 
 ```markdown
 # Project: My App
@@ -181,7 +200,7 @@ Think of it as an onboarding doc you'd give a new developer — but for the AI.
 - No console.log in production code
 ```
 
-### Benefits
+#### Benefits
 
 - ✅ Reduces token overhead (no need to re-explain project every session)
 - ✅ Keeps AI aligned with team standards
@@ -191,11 +210,12 @@ Think of it as an onboarding doc you'd give a new developer — but for the AI.
 
 ---
 
-## 7. Event Hooks
+### 1.7 Event Hooks
 
-Hooks let you automate actions **before or after** Claude does something. Like lifecycle hooks in frameworks (React's `useEffect`, K8s admission controllers).
+Hooks let you automate actions **before or after** Claude does something.
+Like lifecycle hooks in frameworks (React's `useEffect`, K8s admission controllers).
 
-### Hook Types
+#### Hook Types
 
 | Hook | When It Fires | Common Use Case |
 |---|---|---|
@@ -205,7 +225,7 @@ Hooks let you automate actions **before or after** Claude does something. Like l
 | `notification` | When Claude finishes a task | Send Slack/email alert |
 | `stop` | When Claude stops completely | Log completion, trigger downstream pipelines |
 
-### Example Flow
+#### Example Flow
 
 ```
 You type a prompt
@@ -225,14 +245,15 @@ Claude finishes
 
 ---
 
-## 8. Model Context Protocol (MCP)
+### 1.8 Model Context Protocol (MCP)
 
-### What is MCP?
+#### What is MCP?
+
 A **standardized protocol** for connecting Claude to external tools and services.
 
 > **Analogy:** MCP is like USB — a universal connector. Instead of each tool needing its own special integration, MCP gives one standard way to plug anything in.
 
-### What You Can Connect
+#### What You Can Connect
 
 | Tool | Use Case |
 |---|---|
@@ -241,7 +262,7 @@ A **standardized protocol** for connecting Claude to external tools and services
 | **Kubernetes** | Deploy, scale, inspect clusters |
 | **PostgreSQL** | Query databases directly |
 
-### Key Commands
+#### Key Commands
 
 ```bash
 # Add a new MCP tool
@@ -255,9 +276,10 @@ claude mcp list
 
 ---
 
-## 9. Skills & Plugins
+### 1.9 Skills & Plugins
 
-### Skills
+#### Skills
+
 - Markdown files (`skills.md`) stored in `.claude/skills/`
 - Teach Claude **how to perform complex, repeatable tasks**
 - Like a recipe card — Claude reads it and follows instructions
@@ -270,6 +292,7 @@ claude mcp list
 ```
 
 **Example skill instruction:**
+
 ```markdown
 # Kubernetes Deployment Skill
 
@@ -280,7 +303,8 @@ claude mcp list
 
 ---
 
-### Plugins
+#### Plugins
+
 - A **bundled package** that combines:
   - MCP servers
   - Hooks
@@ -293,12 +317,12 @@ claude mcp list
 /plugin install my-company-devops-plugin
 ```
 
-> **🧠 Simple memory tip:**  
+> **🧠 Simple memory tip:**
 > *Skills = instructions for one task. Plugins = a full toolkit bundled together.*
 
 ---
 
-## ⚡ Quick Interview Cheat Sheet
+### 1.10 Quick Interview Cheat Sheet
 
 | Question | Key Answer |
 |---|---|
@@ -315,7 +339,7 @@ claude mcp list
 
 ---
 
-## 🔑 Key Takeaways (The 20% That Gets You 80%)
+### 🔑 Key Takeaways
 
 1. **Claude Code is an agent, not a chatbot** — it takes action, not just advice.
 2. **CLAUDE.md is your project's AI onboarding doc** — always create it with `/init`.
@@ -325,21 +349,19 @@ claude mcp list
 6. **Manage your context window** — use `/compact` and `/clear` to keep Claude sharp.
 7. **Skills & Plugins = reusable AI workflows** — codify and share team knowledge.
 
+> *📅 Last updated: August 2026 | Based on: Claude Code Zero to Hero (60 min tutorial)*
+
 ---
 
-*📅 Last updated: August 2026 | Based on: Claude Code Zero to Hero (60 min tutorial)*
+<br>
 
-================================================================
+# 2. Claude Code + OpenRouter + DeepSeek V4 Flash
 
- # Claude Code + OpenRouter + DeepSeek V4 Flash
-
-
-# 🤖 Claude Code + OpenRouter + DeepSeek V4 Flash
 > **Complete Setup Guide** | Based on tutorial by *Abhishek Veeramalla*
 
 ---
 
-## 📌 What Is This About? (Simple Summary)
+### 📌 What Is This About? (Simple Summary)
 
 > **Think of it like this:**
 > Claude Code is a smart AI coding assistant (CLI tool), but using it with premium models like Claude Opus/Sonnet is **very expensive**.
@@ -347,7 +369,7 @@ claude mcp list
 
 ---
 
-## 🧩 Key Concepts (Plain English)
+### 🧩 Key Concepts (Plain English)
 
 | Term | What It Means |
 |---|---|
@@ -360,21 +382,23 @@ claude mcp list
 
 ---
 
-## 💡 The Problem & Solution
+### 💡 The Problem & Solution
 
-### ❌ Problem
+#### ❌ Problem
+
 - Claude Code's default models (Opus/Sonnet) are **expensive**
 - Self-hosting open models needs a **high-end GPU** (costly hardware)
 - Heavy daily usage = **$100–$200/month** bill
 
-### ✅ Solution
+#### ✅ Solution
+
 - Use **OpenRouter** as a middleman
 - Point Claude Code to OpenRouter's API instead of Anthropic's
 - Use **DeepSeek V4 Flash** — a powerful open-source model served by OpenRouter
 
 ---
 
-## 💰 Cost Comparison
+### 💰 Cost Comparison
 
 | Model / Plan | Cost |
 |---|---|
@@ -387,7 +411,7 @@ claude mcp list
 
 ---
 
-## 🌟 Why DeepSeek V4 Flash?
+### 🌟 Why DeepSeek V4 Flash?
 
 - ✅ **1 Million token context window** — handles huge codebases
 - ✅ **Competitive coding performance** — great for daily dev tasks
@@ -399,9 +423,9 @@ claude mcp list
 
 ---
 
-## 🔧 Step-by-Step Setup
+### 🔧 Step-by-Step Setup
 
-### Step 1 — Install Claude Code CLI
+#### Step 1 — Install Claude Code CLI
 
 ```bash
 npm install -g @anthropic-ai/claude-code
@@ -411,7 +435,7 @@ npm install -g @anthropic-ai/claude-code
 
 ---
 
-### Step 2 — Set Up OpenRouter
+#### Step 2 — Set Up OpenRouter
 
 1. Go to [openrouter.ai](https://openrouter.ai)
 2. **Create an account**
@@ -420,7 +444,7 @@ npm install -g @anthropic-ai/claude-code
 
 ---
 
-### Step 3 — Redirect API Endpoint to OpenRouter
+#### Step 3 — Redirect API Endpoint to OpenRouter
 
 > Instead of hitting Anthropic's server, we point Claude Code to OpenRouter.
 
@@ -433,7 +457,7 @@ export ANTHROPIC_API_KEY="your-openrouter-api-key-here"
 
 ---
 
-### Step 4 — Map Model Aliases to DeepSeek V4 Flash
+#### Step 4 — Map Model Aliases to DeepSeek V4 Flash
 
 > Claude Code internally uses alias names like `haiku` or `sonnet`.
 > We remap those aliases to point to DeepSeek V4 Flash.
@@ -447,7 +471,7 @@ export CLAUDE_MODEL_ALIAS_SONNET="deepseek/deepseek-chat-v4-5"
 
 ---
 
-### Step 5 — Verify the Connection
+#### Step 5 — Verify the Connection
 
 ```bash
 claude
@@ -465,7 +489,7 @@ Inside Claude Code CLI:
 
 ---
 
-## 🔁 Quick Recap (Memory Aid)
+### 🔁 Quick Recap (Memory Aid)
 
 ```
 Claude Code CLI
@@ -479,9 +503,7 @@ DeepSeek V4 Flash (cheap + powerful)
 
 ---
 
-## 📝 Interview & Job Talking Points
-
-> Use these to explain the concept clearly in interviews or discussions:
+### 📝 Interview & Job Talking Points
 
 1. **"I reduced AI coding assistant costs by ~98% by routing Claude Code through OpenRouter to use DeepSeek V4 Flash instead of expensive frontier models."**
 
@@ -495,7 +517,7 @@ DeepSeek V4 Flash (cheap + powerful)
 
 ---
 
-## ⚡ TL;DR (30-Second Version)
+### ⚡ TL;DR (30-Second Version)
 
 > Claude Code is an AI coding CLI. By default it's expensive.
 > Use **OpenRouter** as an API middleman + **DeepSeek V4 Flash** as the model.
@@ -504,32 +526,31 @@ DeepSeek V4 Flash (cheap + powerful)
 
 ---
 
-## 🔗 Resources
+### 🔗 Resources
 
 - [Claude Code Docs](https://docs.anthropic.com/en/docs/claude-code)
 - [OpenRouter](https://openrouter.ai)
 - [DeepSeek Models on OpenRouter](https://openrouter.ai/deepseek)
 
+> *📅 Last Updated: August 2026 | Source: YouTube – Abhishek Veeramalla*
+
 ---
 
-*📅 Last Updated: August 2026 | Source: YouTube – Abhishek Veeramalla*
+<br>
 
-=======================================
+# 3. DeepSeek Harness — Explained Simply
 
-# 🧠 DeepSeek Harness — Explained Simply
-
-# 🧠 DeepSeek Harness — Explained Simply
 > **Complete Guide for Learning & Interviews** | Based on tutorial by *Abhishek Veeramalla*
 
 ---
 
-## 📌 What Is This About? (One-Line Summary)
+### 📌 What Is This About? (One-Line Summary)
 
 > **DeepSeek open-sourced the "engine room" behind their AI coding agent — the part that tells the LLM *how* to think, what to remember, and what tools to use. That hidden layer is called the Harness.**
 
 ---
 
-## 🧩 Key Concepts (Plain English Glossary)
+### 🧩 Key Concepts (Plain English Glossary)
 
 | Term | What It Means |
 |---|---|
@@ -544,7 +565,7 @@ DeepSeek V4 Flash (cheap + powerful)
 
 ---
 
-## 💡 The Core Insight — What Is a Harness?
+### 💡 The Core Insight — What Is a Harness?
 
 ```
 WITHOUT a Harness:
@@ -569,7 +590,7 @@ WITH a Harness (Agent):
 
 ---
 
-## 🚨 The Problem with Existing Agents
+### 🚨 The Problem with Existing Agents
 
 | Agent | Harness Visibility |
 |---|---|
@@ -581,14 +602,16 @@ WITH a Harness (Agent):
 
 ---
 
-## 🌟 Why DeepSeek Harness Went Viral
+### 🌟 Why DeepSeek Harness Went Viral
 
-### 1. 💯 100% Open Source
+#### 1. 💯 100% Open Source
+
 - You can see *exactly* how prompts are built
 - Inspect how memory is stored and retrieved
 - Understand how repo context is injected into LLM calls
 
-### 2. 🔭 Full Observability — The Trajectory Tab
+#### 2. 🔭 Full Observability — The Trajectory Tab
+
 - Every agent action has a **live trace log**
 - Shows:
   - The injected system prompt
@@ -597,7 +620,8 @@ WITH a Harness (Agent):
   - Internal reasoning steps
 - Makes debugging agent behavior straightforward
 
-### 3. 🔌 Modular Plugin Architecture
+#### 3. 🔌 Modular Plugin Architecture
+
 - Built on the **Cordis Framework**
 - Contains **160+ plugins**
 - Each feature = one plugin = independently swappable
@@ -610,15 +634,15 @@ WITH a Harness (Agent):
 
 ---
 
-## 🔧 Installation & Setup
+### 🔧 Installation & Setup
 
-### Step 1 — Install via npm/npx
+#### Step 1 — Install via npm/npx
 
 ```bash
 npx dsh-web
 ```
 
-> Or install globally:
+Or install globally:
 
 ```bash
 npm install -g dsh
@@ -627,7 +651,7 @@ dsh web
 
 ---
 
-### Step 2 — Launch the Web UI
+#### Step 2 — Launch the Web UI
 
 ```
 Local URL: http://localhost:3080
@@ -637,7 +661,7 @@ Local URL: http://localhost:3080
 
 ---
 
-### Step 3 — Configure Your Model
+#### Step 3 — Configure Your Model
 
 1. Go to ⚙️ **Settings** in the UI
 2. Add your API key for:
@@ -648,9 +672,9 @@ Local URL: http://localhost:3080
 
 ---
 
-## 🔌 Plugin Architecture Deep Dive
+### 🔌 Plugin Architecture Deep Dive
 
-### How Plugins Work
+#### How Plugins Work
 
 ```
 Cordis Framework (Core)
@@ -664,7 +688,7 @@ Cordis Framework (Core)
    └── Plugin: ui-widget             ← custom (you can build this)
 ```
 
-### Disabling or Tweaking Existing Plugins
+#### Disabling or Tweaking Existing Plugins
 
 Edit the CLI config file in your profile directory:
 
@@ -680,15 +704,15 @@ plugins:
 
 ---
 
-## 🛠️ Building Your Own Custom Plugins
+### 🛠️ Building Your Own Custom Plugins
 
-### Switch to Creator Mode
+#### Switch to Creator Mode
 
 1. Open DeepSeek Harness UI
 2. Under **Agent Presets** → select **Creator Mode**
 3. Now prompt the agent to build a plugin for you!
 
-### Example Prompts
+#### Example Prompts
 
 ```
 "Add a Slack notification plugin that alerts me when a task completes."
@@ -704,7 +728,7 @@ plugins:
 
 > 🤯 The agent **writes its own plugin code**, shows you a diff, and you **approve the change in real time** — no manual coding needed.
 
-### Plugin Build Workflow
+#### Plugin Build Workflow
 
 ```
 You describe the feature
@@ -718,7 +742,7 @@ Approve → Plugin is live instantly
 
 ---
 
-## 🔍 Trajectory Tab — Full Observability
+### 🔍 Trajectory Tab — Full Observability
 
 > This is what makes DeepSeek Harness unique for **learning and debugging**:
 
@@ -751,7 +775,7 @@ Trajectory Log Example:
 
 ---
 
-## 📊 Quick Comparison Table
+### 📊 Quick Comparison Table
 
 | Feature | Claude Code / Copilot | DeepSeek Harness |
 |---|---|---|
@@ -765,9 +789,7 @@ Trajectory Log Example:
 
 ---
 
-## 📝 Interview & Job Talking Points
-
-> Memorize these — they clearly demonstrate deep understanding:
+### 📝 Interview & Job Talking Points
 
 1. **"A Harness is the orchestration layer around an LLM — it handles system prompts, memory, repo context, and tool use. The LLM itself is just one component."**
 
@@ -781,7 +803,7 @@ Trajectory Log Example:
 
 ---
 
-## ⚡ TL;DR (30-Second Version)
+### ⚡ TL;DR (30-Second Version)
 
 > An AI agent = **LLM + Harness**.
 > The Harness is the hidden layer that builds prompts, manages memory, reads code context, and calls tools.
@@ -791,7 +813,7 @@ Trajectory Log Example:
 
 ---
 
-## 🧭 Mental Model for Long-Term Memory
+### 🧭 Mental Model for Long-Term Memory
 
 ```
 Think of an AI agent like a chef in a restaurant:
@@ -809,33 +831,32 @@ DeepSeek = The only restaurant that lets you
 
 ---
 
-## 🔗 Resources
+### 🔗 Resources
 
 - [DeepSeek Harness GitHub](https://github.com/deepseek-ai/DeepSeek-Harness)
 - [Cordis Framework](https://github.com/cordiverse/cordis)
 - [DeepSeek Models](https://platform.deepseek.com)
 
+> *📅 Last Updated: August 2026 | Source: YouTube – Abhishek Veeramalla*
+
 ---
 
-*📅 Last Updated: August 2026 | Source: YouTube – Abhishek Veeramalla*
+<br>
 
-=================================
+# 4. RAG (Retrieval-Augmented Generation) — Zero to Hero
 
-# RAG (Retrieval-Augmented Generation) — Zero to Hero
-
-# 🔍 RAG (Retrieval-Augmented Generation) — Zero to Hero
 > **Complete Guide for Learning & Interviews** | Based on tutorial by *Abhishek Veeramalla*
 
 ---
 
-## 📌 What Is This About? (One-Line Summary)
+### 📌 What Is This About? (One-Line Summary)
 
 > **RAG lets an LLM answer questions using YOUR private documents — without retraining the model.
 > It works by searching relevant document chunks and injecting them into the prompt before asking the LLM.**
 
 ---
 
-## 🧩 Key Concepts (Plain English Glossary)
+### 🧩 Key Concepts (Plain English Glossary)
 
 | Term | What It Means |
 |---|---|
@@ -852,23 +873,26 @@ DeepSeek = The only restaurant that lets you
 
 ---
 
-## 💡 Why RAG Exists — The Problem
+### 💡 Why RAG Exists — The Problem
 
-### ❌ Problem 1: LLMs Have a Training Cutoff
+#### ❌ Problem 1: LLMs Have a Training Cutoff
+
 > LLMs only know what they were trained on.
 > They have no knowledge of events, policies, or documents created after their cutoff date.
 
-### ❌ Problem 2: LLMs Don't Know Your Private Data
+#### ❌ Problem 2: LLMs Don't Know Your Private Data
+
 > Your company's leave policies, runbooks, Confluence pages, SharePoint docs —
 > an LLM has never seen any of it.
 
-### ❌ Problem 3: You Can't Just Paste Everything
+#### ❌ Problem 3: You Can't Just Paste Everything
+
 > You *could* manually paste a document into a prompt — but what if your org has
 > **10,000 internal documents**? That's impossible to manage and too expensive.
 
 ---
 
-## ✅ The RAG Solution — 3 Simple Stages
+### ✅ The RAG Solution — 3 Simple Stages
 
 ```
 User Query
@@ -892,9 +916,9 @@ Accurate, hallucination-free Answer
 
 ---
 
-## 🔬 Core Concept 1 — Embeddings & Semantic Search
+### 🔬 Core Concept 1 — Embeddings & Semantic Search
 
-### Why Keyword Search Fails
+#### Why Keyword Search Fails
 
 ```
 Document says:  "leave policy"
@@ -904,7 +928,7 @@ User asks:      "How many annual day offs do I get?"
 ✅ Semantic Search → Match! (same meaning)
 ```
 
-### What an Embedding Looks Like
+#### What an Embedding Looks Like
 
 ```python
 # The word "leave policy" becomes a vector like:
@@ -914,7 +938,7 @@ User asks:      "How many annual day offs do I get?"
 
 > Model used: `text-embedding-3-small` (OpenAI) — lightweight & fast
 
-### How Cosine Similarity Works
+#### How Cosine Similarity Works
 
 ```
 "leave policy"   →  Vector A  ────────┐
@@ -923,19 +947,18 @@ User asks:      "How many annual day offs do I get?"
 "banana recipe"  →  Vector C  ────────┘→ Cosine Score: 0.12 ❌ (not related)
 ```
 
-> Score **closer to 1.0** = semantically similar
-> Score **closer to 0.0** = unrelated
+> Score **closer to 1.0** = semantically similar | Score **closer to 0.0** = unrelated
 
 ---
 
-## 🔬 Core Concept 2 — Chunking
+### 🔬 Core Concept 2 — Chunking
 
-### Why Chunking Is Necessary
+#### Why Chunking Is Necessary
 
 > Embedding an entire 50-page document into ONE vector loses precision.
 > The vector becomes a "blurry average" of everything.
 
-### How Chunking Works
+#### How Chunking Works
 
 ```
 Original Document (2000 tokens)
@@ -953,9 +976,9 @@ Original Document (2000 tokens)
 
 ---
 
-## 🔬 Core Concept 3 — Vector Databases (ChromaDB)
+### 🔬 Core Concept 3 — Vector Databases (ChromaDB)
 
-### What a Vector Database Does
+#### What a Vector Database Does
 
 ```
 Relational DB (SQL)        Vector DB (ChromaDB)
@@ -965,7 +988,7 @@ Row        →               Document + its Embedding
 WHERE      →               Cosine Similarity Search
 ```
 
-### ChromaDB at a Glance
+#### ChromaDB at a Glance
 
 - Runs **locally** (via Docker or embedded Python)
 - Stores **text chunks + their embeddings** together
@@ -974,9 +997,9 @@ WHERE      →               Cosine Similarity Search
 
 ---
 
-## 🚀 Full RAG Pipeline — Step by Step
+### 🚀 Full RAG Pipeline — Step by Step
 
-### Step 1 — Prepare & Chunk Documents
+#### Step 1 — Prepare & Chunk Documents
 
 ```python
 # Read your internal documents
@@ -989,7 +1012,7 @@ chunks = chunk_text(documents, chunk_size=200, overlap=20)
 
 ---
 
-### Step 2 — Embed & Store in ChromaDB
+#### Step 2 — Embed & Store in ChromaDB
 
 ```python
 # Generate embeddings for each chunk
@@ -1003,7 +1026,7 @@ collection.add(documents=chunks, embeddings=embeddings)
 
 ---
 
-### Step 3 — Query Retrieval
+#### Step 3 — Query Retrieval
 
 ```python
 user_query = "How many sick leaves do I have?"
@@ -1021,7 +1044,7 @@ results = collection.query(
 
 ---
 
-### Step 4 — Build Augmented Prompt
+#### Step 4 — Build Augmented Prompt
 
 ```python
 system_prompt = """
@@ -1044,7 +1067,7 @@ User Question: {user_query}
 
 ---
 
-### Step 5 — Generate the Answer
+#### Step 5 — Generate the Answer
 
 ```python
 response = openai.chat.completions.create(
@@ -1058,7 +1081,7 @@ print(response.choices[0].message.content)
 
 ---
 
-## 🏗️ Full Architecture Diagram
+### 🏗️ Full Architecture Diagram
 
 ```
 ┌──────────────────────────────────────────────────────────┐
@@ -1087,7 +1110,7 @@ print(response.choices[0].message.content)
 
 ---
 
-## 🛠️ Prerequisites & Setup
+### 🛠️ Prerequisites & Setup
 
 | Requirement | Purpose |
 |---|---|
@@ -1104,9 +1127,7 @@ docker run -p 8000:8000 chromadb/chroma
 
 ---
 
-## 📝 Interview & Job Talking Points
-
-> Memorize these — they demonstrate deep, practical understanding:
+### 📝 Interview & Job Talking Points
 
 1. **"RAG solves two core LLM limitations: training cutoff dates and lack of access to private organizational data — without requiring model retraining."**
 
@@ -1122,7 +1143,7 @@ docker run -p 8000:8000 chromadb/chroma
 
 ---
 
-## 📊 RAG vs Alternatives
+### 📊 RAG vs Alternatives
 
 | Approach | Pros | Cons |
 |---|---|---|
@@ -1132,7 +1153,7 @@ docker run -p 8000:8000 chromadb/chroma
 
 ---
 
-## ⚡ TL;DR (30-Second Version)
+### ⚡ TL;DR (30-Second Version)
 
 > LLMs don't know your private data.
 > RAG fixes this: **chunk** your docs → **embed** them → **store** in a vector DB.
@@ -1141,7 +1162,7 @@ docker run -p 8000:8000 chromadb/chroma
 
 ---
 
-## 🧭 Chef Analogy for Memory
+### 🧭 Chef Analogy for Memory
 
 ```
 Think of RAG like a chef preparing a dish:
@@ -1158,13 +1179,17 @@ Think of RAG like a chef preparing a dish:
 
 ---
 
-## 🔗 Resources
+### 🔗 Resources
 
 - [ChromaDB Docs](https://docs.trychroma.com)
 - [OpenAI Embeddings](https://platform.openai.com/docs/guides/embeddings)
 - [LangChain RAG Guide](https://python.langchain.com/docs/tutorials/rag/)
 - [Abhishek Veeramalla GitHub](https://github.com/iam-veeramalla)
 
+> *📅 Last Updated: August 2026 | Source: YouTube – Abhishek Veeramalla*
+
 ---
 
-*📅 Last Updated: August 2026 | Source: YouTube – Abhishek Veeramalla*
+<br>
+
+*📅 Guide last compiled: August 2026*
