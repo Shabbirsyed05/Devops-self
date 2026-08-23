@@ -1,0 +1,480 @@
+# 🛡️ Enterprise Kubernetes Security Master Handbook
+> **Zero Trust, Defense-in-Depth, Compliance & Cloud-Native Hardening.**  
+> *Complete 19-Chapter Reference Guide for DevSecOps Engineers, Cloud Security Architects, Platform SREs, and CKS Candidates.*
+
+---
+
+## 📑 Table of Contents
+1. [Threat Model & The Cloud-Native Attack Surface](#1-threat-model--the-cloud-native-attack-surface)
+2. [Authentication (AuthN) & Identity Architecture (OIDC & ServiceAccounts)](#2-authentication-authn--identity-architecture)
+3. [Authorization (AuthZ) & Production RBAC Design](#3-authorization-authz--production-rbac-design)
+4. [Admission Controllers & Policy-as-Code (Kyverno vs. OPA Gatekeeper)](#4-admission-controllers--policy-as-code)
+5. [Pod Security Standards (PSS) & Hardened SecurityContext](#5-pod-security-standards-pss--hardened-securitycontext)
+6. [Service Accounts & Bound Projected Tokens (K8s 1.24+)](#6-service-accounts--bound-projected-tokens)
+7. [Secrets Management, KMS Plugins & Envelope Encryption at Rest](#7-secrets-management-kms-plugins--envelope-encryption-at-rest)
+8. [Control Plane & Worker Node Hardening Flags](#8-control-plane--worker-node-hardening-flags)
+9. [Linux Kernel Security Primitives (Namespaces, Cgroups, Seccomp, AppArmor, SELinux)](#9-linux-kernel-security-primitives)
+10. [Network Security, Micro-Segmentation & Zero-Trust NetworkPolicies](#10-network-security-micro-segmentation--zero-trust-networkpolicies)
+11. [Supply Chain Security: Vulnerability Scanning, SBOM & Cosign Signing](#11-supply-chain-security-vulnerability-scanning-sbom--cosign-signing)
+12. [Runtime Threat Detection with Falco & eBPF Kernel Probes](#12-runtime-threat-detection-with-falco--ebpf-kernel-probes)
+13. [Audit Logging & Security Observability Frameworks](#13-audit-logging--security-observability-frameworks)
+14. [Multi-Tenancy & Cloud Workload Identity (AWS EKS IRSA / GKE / AKS)](#14-multi-tenancy--cloud-workload-identity)
+15. [GitOps & CI/CD Pipeline Security](#15-gitops--cicd-pipeline-security)
+16. [Compliance Frameworks Matrix (CIS Benchmarks, NIST, SOC 2, PCI-DSS)](#16-compliance-frameworks-matrix)
+17. [Disaster Recovery & Encrypted etcd Backup Security](#17-disaster-recovery--encrypted-etcd-backup-security)
+18. [Senior DevSecOps Interview Masterclass & Scenario Q&A](#18-senior-devsecops-interview-masterclass--scenario-qa)
+19. [Production Security Readiness 40-Point Scorecard](#19-production-security-readiness-40-point-scorecard)
+
+---
+
+## 1. Threat Model & The Cloud-Native Attack Surface
+
+```
++-----------------------------------------------------------------------------------+
+|                               ATTACK VECTORS & FLOW                               |
+|                                                                                   |
+|  [ Attacker ] ---> ( Initial Access )                                             |
+|                    - Phishing, exposed dashboards, CVE in web app, leaked token   |
+|                            |                                                      |
+|                            v                                                      |
+|                    ( Privilege Escalation )                                       |
+|                    - RBAC abuse, overly permissive SA token, hostPath breakout   |
+|                            |                                                      |
+|                            v                                                      |
+|                    ( Lateral Movement )                                           |
+|                    - Unrestricted Pod-to-Pod traffic, node compromise             |
+|                            |                                                      |
+|            +---------------+---------------+------------------+                   |
+|            |                               |                  |                   |
+|            v                               v                  v                   |
+|   [ Control Plane Hijack ]       [ Data Exfiltration ]   [ Cryptojacking / ]      |
+|   (etcd access, API Admin)       (Secrets, DB Dumps)     [ Workload Wipeout]      |
++-----------------------------------------------------------------------------------+
+```
+
+### The Shared Responsibility Model
+* **Cloud Provider (AWS EKS / GCP GKE / Azure AKS):** Secures the physical infrastructure, hypervisors, control plane availability, and managed `etcd` hosting.
+* **Platform & Security Engineers:** Secure cluster access (OIDC/RBAC), workload configurations (`securityContext`), network isolation (`NetworkPolicies`), runtime detection (Falco), and secret lifecycle.
+
+---
+
+## 2. Authentication (AuthN) & Identity Architecture
+
+```
+[ Human User ] ───> [ OIDC Provider (Okta / Azure AD) ] ───> [ Short-Lived JWT ]
+                                                                     │
+                                                                     ▼
+[ kubectl CLI ] ──────────────────────────────────────────> [ kube-apiserver ]
+                                                                     │ (Validates Signature)
+                                                                     ▼
+                                                         [ Authorizes via RBAC ]
+```
+
+### Human vs. Workload Authentication
+1. **Human Operators:** Kubernetes does **not** store human user accounts natively. All human authentication must integrate with external **OpenID Connect (OIDC)** providers using MFA and short-lived tokens.
+2. **In-Cluster Workloads:** Pods authenticate to the API Server using **`ServiceAccounts`** with bound projected volume tokens.
+
+---
+
+## 3. Authorization (AuthZ) & Production RBAC Design
+
+```
+                 +---------------------------------+
+                 |      Subject (Who)              | (User, Group, ServiceAccount)
+                 +----------------+----------------+
+                                  |
+                                  ▼
+                 +---------------------------------+
+                 | Role / ClusterRole (What)       | (apiGroups + resources + verbs)
+                 +----------------+----------------+
+                                  | (Bound via RoleBinding / ClusterRoleBinding)
+                                  ▼
+                 +---------------------------------+
+                 | Target API Object (Where)       | (Namespace or Cluster Scope)
+                 +---------------------------------+
+```
+
+### Production RBAC Anti-Patterns
+1. **Wildcard Verbs / Resources:** Never grant `verbs: ["*"]` or `resources: ["*"]` in production roles.
+2. **Global Admin Overuse:** Binding `cluster-admin` to regular developer ServiceAccounts.
+3. **`system:authenticated` Abuse:** Binding roles to all authenticated users indiscriminately.
+
+---
+
+## 4. Admission Controllers & Policy-as-Code
+
+```
+                     KUBERNETES API REQUEST LIFECYCLE
+  HTTP Request ──> AuthN ──> AuthZ (RBAC) ──> Mutating Webhooks ──> Schema Validation ──> Validating Webhooks ──> etcd
+```
+
+### Kyverno vs. OPA Gatekeeper
+| Feature | Kyverno | OPA Gatekeeper |
+| :--- | :--- | :--- |
+| **Policy Language** | Native Kubernetes YAML | Rego (Declarative query language) |
+| **Learning Curve** | Low (Standard K8s manifests) | Medium / High |
+| **Capabilities** | Validate, Mutate, Generate, Verify Signatures | Validate, Mutate |
+| **Best For** | K8s-native platform teams | Complex enterprise multi-cloud policy |
+
+---
+
+## 5. Pod Security Standards (PSS) & Hardened SecurityContext
+
+### Pod Security Admission (PSA) Levels
+* **`Privileged`:** Unrestricted execution (system components and CNI plugins only).
+* **`Baseline`:** Blocks known privilege escalations with minimal friction.
+* **`Restricted`:** Hardened zero-trust standard (enforces non-root, read-only root FS, drops capabilities).
+
+```bash
+# Label namespace for Restricted Pod Security Admission
+kubectl label namespace production \
+  pod-security.kubernetes.io/enforce=restricted \
+  pod-security.kubernetes.io/enforce-version=latest \
+  pod-security.kubernetes.io/warn=restricted \
+  pod-security.kubernetes.io/audit=restricted
+```
+
+### Production-Grade Hardened `securityContext`
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hardened-app
+  namespace: production
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+  - name: web
+    image: registry.company.com/web@sha256:4f8a2b5e...
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      privileged: false
+      capabilities:
+        drop: ["ALL"]
+    volumeMounts:
+    - name: tmp-dir
+      mountPath: /tmp
+  volumes:
+  - name: tmp-dir
+    emptyDir:
+      medium: Memory
+```
+
+---
+
+## 6. Service Accounts & Bound Projected Tokens
+
+```
+                        BOUND PROJECTED SERVICEACCOUNT TOKENS
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │ • Short-Lived: 1-hour default TTL with automated Kubelet rotation.     │
+  │ • Audience-Bound: Valid ONLY for specified audience (`https://api...`) │
+  │ • Lifecycle-Bound: Instantly invalidated when the Pod is terminated.   │
+  │ • Stored in-memory via `tmpfs` volume, never persisted to node disk.   │
+  └────────────────────────────────────────────────────────────────────────┘
+```
+
+```yaml
+# Disable token automount if Pod does not query the K8s API
+apiVersion: v1
+kind: Pod
+metadata:
+  name: batch-worker
+spec:
+  automountServiceAccountToken: false
+```
+
+---
+
+## 7. Secrets Management, KMS Plugins & Envelope Encryption at Rest
+
+```
+                                  [ Plaintext Secret ]
+                                           │
+                                           ▼
+[ kube-apiserver ] ───> [ KMS Plugin (AWS KMS / Vault / Azure Key Vault) ]
+                                           │ (Envelope Encryption: Encrypted with DEK/KEK)
+                                           ▼
+                                  [ Encrypted in etcd ]
+```
+
+### Production Secret Management Principles
+1. **Never store plaintext secrets in Git:** Use External Secrets Operator (ESO) or Sealed Secrets.
+2. **KMS Envelope Encryption:** Encrypt the Data Encryption Key (DEK) with a Key Encryption Key (KEK) managed in cloud KMS.
+3. **Automated Secret Rotation:** Enforce dynamic credential lifetimes via HashiCorp Vault.
+
+---
+
+## 8. Control Plane & Worker Node Hardening Flags
+
+```
++-----------------------------------------------------------------------------------+
+|                        CONTROL PLANE & NODE HARDENING FLAGS                       |
++-----------------------------------------------------------------------------------+
+| kube-apiserver:                                                                   |
+|   --anonymous-auth=false                                                          |
+|   --authorization-mode=Node,RBAC                                                  |
+|   --enable-admission-plugins=NodeRestriction,PodSecurity                          |
+|   --audit-log-path=/var/log/kubernetes/audit.log                                  |
+|   --encryption-provider-config=/etc/kubernetes/encryption.yaml                    |
+|                                                                                   |
+| kubelet:                                                                          |
+|   --anonymous-auth=false                                                          |
+|   --authorization-mode=Webhook                                                    |
+|   --read-only-port=0                                                              |
+|   --protect-kernel-defaults=true                                                  |
+|                                                                                   |
+| etcd:                                                                             |
+|   --client-cert-auth=true                                                         |
+|   --peer-client-cert-auth=true                                                    |
+|   --cert-file=/etc/kubernetes/pki/etcd/server.crt                                 |
++-----------------------------------------------------------------------------------+
+```
+
+---
+
+## 9. Linux Kernel Security Primitives
+
+* **Namespaces:** Process isolation (`PID`, `NET`, `MNT`, `IPC`, `UTS`, `USER`, `CGROUP`).
+* **Cgroups (v2):** Resource ceiling enforcement (CPU throttling, Memory OOM, PID limits against fork bombs).
+* **Seccomp (`RuntimeDefault`):** Restricts permitted system calls, dropping `ptrace`, `kexec_load`, and `keyctl`.
+* **AppArmor / SELinux:** Mandatory Access Control (MAC) enforcing process-level filesystem and capability constraints.
+
+---
+
+## 10. Network Security, Micro-Segmentation & Zero-Trust NetworkPolicies
+
+### Default-Deny All Policy
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: production
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+```
+
+### Whitelisted Egress with Mandatory DNS Rule
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-traffic
+  namespace: production
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: database
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+```
+
+---
+
+## 11. Supply Chain Security: Vulnerability Scanning, SBOM & Cosign Signing
+
+```
+[ Developer Code ] ──> [ Commit Signed ] ──> [ SAST Scan (Snyk) ] ──> [ Container Build ]
+                                                                               │
+                                                                               ▼
+[ Admission Gate (Kyverno) ] <── [ Cosign Sign Digest ] <── [ Image Scan (Trivy) ]
+```
+
+### Best Practices
+* Pin base images to **immutable SHA256 digests** (e.g., `image@sha256:...`).
+* Use **Distroless** base images to eliminate shells, package managers, and binaries.
+* Generate and store **Software Bill of Materials (SBOM)** via Syft for every build.
+
+---
+
+## 12. Runtime Threat Detection with Falco & eBPF Kernel Probes
+
+```
+[ Container Process ] ──> [ Linux Kernel Syscall ] ──> [ eBPF Probe ] ──> [ Falco Engine ] ──> [ Alert/SIEM ]
+```
+
+### Production Falco Rule Example
+```yaml
+- rule: Terminal Shell Spawned in Container
+  desc: Detects when a shell is executed inside a live production container
+  condition: container and proc.name in (bash, sh, zsh, ksh) and not k8s.ns.name in (kube-system)
+  output: "CRITICAL: Shell spawned in container (user=%user.name pod=%k8s.pod.name ns=%k8s.ns.name cmd=%proc.cmdline)"
+  priority: CRITICAL
+  tags: [container, execution, zero-trust]
+```
+
+---
+
+## 13. Audit Logging & Security Observability Frameworks
+
+```yaml
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+  # Full payload audit for Secrets and RBAC
+  - level: RequestResponse
+    resources:
+    - group: ""
+      resources: ["secrets", "configmaps"]
+    - group: "rbac.authorization.k8s.io"
+      resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+  # Metadata for all other operations
+  - level: Metadata
+```
+
+---
+
+## 14. Multi-Tenancy & Cloud Workload Identity
+
+* **AWS EKS IRSA (IAM Roles for Service Accounts):** Maps AWS IAM roles to Kubernetes ServiceAccounts via OIDC federation (eliminates static AWS access keys on worker nodes).
+* **Tenant Isolation:** Dedicated namespaces + strict `ResourceQuota` + default-deny `NetworkPolicies` + KMS key isolation per tenant.
+
+---
+
+## 15. GitOps & CI/CD Pipeline Security
+
+* **Git as Single Source of Truth:** Direct `kubectl apply` in production is disabled.
+* **GPG Signed Commits:** Enforced via GitHub/GitLab branch protections requiring $\ge 2$ approvals.
+* **Ephemeral Runners:** CI build and test execution runs in isolated short-lived containers.
+
+---
+
+## 16. Compliance Frameworks Matrix
+
+| Framework | Core Objective | Key Kubernetes Security Controls |
+| :--- | :--- | :--- |
+| **CIS Benchmark** | Hardened configuration baseline | `kube-bench` scans, disable anonymous auth, restrict Kubelet ports. |
+| **NIST SP 800-190** | Container security guide | Vulnerability scanning, supply chain provenance, runtime behavioral monitoring. |
+| **SOC 2 Type II** | Trust & security operations | Audit logging, quarterly RBAC access reviews, TLS in transit, KMS at rest. |
+| **PCI-DSS 4.0** | Cardholder data protection | Micro-segmentation with NetworkPolicies, secret encryption, strict egress rules. |
+
+---
+
+## 17. Disaster Recovery & Encrypted etcd Backup Security
+
+```bash
+# 1. Capture production etcd snapshot
+ETCDCTL_API=3 etcdctl snapshot save /backup/etcd-snapshot.db \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key
+
+# 2. Encrypt snapshot before off-site cloud replication
+gpg --symmetric --cipher-algo AES256 /backup/etcd-snapshot.db
+```
+
+---
+
+## 18. Senior DevSecOps Interview Masterclass & Scenario Q&A
+
+### Q1: An attacker compromises a web application container. What stops them from escaping to the node and compromising the cluster?
+* **Answer:**
+  1. **Non-Root & SecurityContext:** `runAsNonRoot: true` and `allowPrivilegeEscalation: false` prevent basic root escalation.
+  2. **Seccomp & Dropped Capabilities:** Dropping all Linux capabilities (`drop: ["ALL"]`) prevents kernel exploits.
+  3. **Read-Only Root Filesystem:** Blocks downloading or executing malware binaries on disk.
+  4. **NetworkPolicies:** Default-deny prevents scanning internal pods or hitting cloud metadata (`169.254.169.254`).
+  5. **Restricted Token:** `automountServiceAccountToken: false` blocks API server access.
+  6. **Falco Runtime Detection:** Detects and alerts on unauthorized process executions in real time.
+
+### Q2: Why is Base64 encoding in Secrets insufficient, and how do you achieve true defense-in-depth?
+* **Answer:**
+  * Base64 is transport encoding, not encryption.
+  * **Defense-in-Depth:**
+    1. Enable `etcd` KMS envelope encryption at rest.
+    2. Enforce strict least-privilege RBAC on secret endpoints.
+    3. Use External Secrets Operator (ESO) to pull credentials dynamically from Vault/AWS Secrets Manager.
+    4. Enable `RequestResponse` audit logging on Secret objects.
+
+---
+
+## 19. Production Security Readiness 40-Point Scorecard
+
+```markdown
+### 1. Control Plane & API Hardening
+- [ ] API server anonymous authentication disabled (`--anonymous-auth=false`).
+- [ ] API server insecure port disabled (`--insecure-port=0`).
+- [ ] NodeRestriction and PodSecurity admission plugins enabled.
+- [ ] Audit logging enabled with `RequestResponse` for Secrets and RBAC.
+- [ ] API server and etcd communication encrypted using mutual TLS (mTLS).
+- [ ] etcd encryption at rest enabled with cloud KMS / Vault provider.
+- [ ] Automated daily etcd snapshot backups encrypted and sent to off-cluster storage.
+
+### 2. Node & Runtime Hardening
+- [ ] Kubelet anonymous authentication disabled and authorization set to Webhook.
+- [ ] Kubelet read-only port disabled (`--read-only-port=0`).
+- [ ] Node SSH access restricted (Key-only via bastion hosts).
+- [ ] Minimal, hardened OS in use with automated security patching.
+- [ ] Container runtime (containerd/CRI-O) hardened and patched against CVEs.
+- [ ] Falco / eBPF runtime threat detection deployed as a DaemonSet with alerting.
+
+### 3. Identity, Access & RBAC
+- [ ] OIDC integrated with corporate IdP; MFA enforced for all human operators.
+- [ ] No wildcard permissions (`*`) in any Production Role or ClusterRole.
+- [ ] No administrative bindings attached to `system:authenticated`.
+- [ ] Dedicated ServiceAccounts assigned per workload (Default SA never used).
+- [ ] `automountServiceAccountToken: false` set on all Pods not querying the API.
+- [ ] Quarterly RBAC access reviews automated.
+
+### 4. Workload & Container Security
+- [ ] `Pod Security Standards (PSS)` enforced at `Restricted` level across namespaces.
+- [ ] `runAsNonRoot: true` and `runAsUser` specified on all workloads.
+- [ ] `allowPrivilegeEscalation: false` enforced.
+- [ ] `readOnlyRootFilesystem: true` enabled on application containers.
+- [ ] Linux capabilities dropped (`drop: ["ALL"]`).
+- [ ] Seccomp profile configured to `RuntimeDefault`.
+- [ ] No containers running in `privileged: true` mode.
+- [ ] Resource requests and limits (CPU/Memory) defined on every container.
+
+### 5. Network & Traffic Isolation
+- [ ] Default-deny NetworkPolicies applied across all application namespaces.
+- [ ] Explicit egress whitelisting enforced (blocking unauthorized external IPs).
+- [ ] Cloud Instance Metadata API (`169.254.169.254`) blocked via NetworkPolicy.
+- [ ] Ingress configured with TLS 1.2/1.3 and HSTS headers.
+- [ ] Web Application Firewall (WAF) and DDoS protection deployed at edge.
+- [ ] Mutual TLS (mTLS) enabled for in-cluster service-to-service communication.
+
+### 6. Supply Chain & Secrets
+- [ ] Private container registry in use with vulnerability scanning (Trivy / Grype).
+- [ ] Images signed using Cosign/Sigstore; signatures verified at admission.
+- [ ] Base images pinned to immutable SHA256 digests.
+- [ ] SBOM generated and tracked for all production releases.
+- [ ] Secrets managed via External Secrets Operator / HashiCorp Vault.
+- [ ] No plaintext secrets or tokens stored in Git repositories.
+- [ ] Secret rotation policies automated.
+```
